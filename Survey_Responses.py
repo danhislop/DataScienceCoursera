@@ -3,6 +3,7 @@
 """
 @author: dan hislop |  https://github.com/danhislop | hislopdan@gmail.com
 Created on Wed Apr  3 19:41:50 2019
+Turn a .csv into a sorted dataframe, calculate summaries, and plot
 The following is my work, in response to Data Visualization class questions
 """
 
