@@ -4,7 +4,7 @@ https://www.coursera.org/specializations/ibm-data-science-professional-certifica
 
 
 If the Jupyter Notebooks don't render directly from github (sometimes they don't), 
-Just paste the URL from github directly into: https://nbviewer.jupyter.org/
+just paste the URL from github directly into: https://nbviewer.jupyter.org/
 
 for example: 
 https://nbviewer.jupyter.org/github/danhislop/LearningTools/blob/master/TestUpload.ipynb
