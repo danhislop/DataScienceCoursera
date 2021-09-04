@@ -2,6 +2,7 @@ import http.client
 import json
 import csv
 
+GT_USERNAME = 'dhislop3'
 
 #############################################################################################################################
 # cse6242 
@@ -55,13 +56,19 @@ class Graph:
             edges_CSV = list(edges_CSV)[1:]
             self.edges = [(e[0], e[1]) for e in edges_CSV]
 
+    def node_exists(self, node):
+        """ check to see if a node exists already """
+        return (node in self.nodes)
 
     def add_node(self, id: str, name: str) -> None:
         """
         add a tuple (id, name) representing a node to self.nodes if it does not already exist
         The graph should not contain any duplicate nodes
         """
-        return NotImplemented
+        assert isinstance(id, str)
+        assert isinstance(name, str)
+        if not self.node_exists((id, name)):
+            self.nodes.append((id, name))
 
 
     def add_edge(self, source: str, target: str) -> None:
@@ -78,14 +85,14 @@ class Graph:
         """
         Returns an integer value for the total number of nodes in the graph
         """
-        return NotImplemented
+        return len(self.nodes)
 
 
     def total_edges(self) -> int:
         """
         Returns an integer value for the total number of edges in the graph
         """
-        return NotImplemented
+        return len(self.edges)
 
 
     def max_degree_nodes(self) -> dict:
@@ -98,6 +105,11 @@ class Graph:
         """
         return NotImplemented
 
+    def get_nodes(self):
+        return self.nodes
+
+    def get_edges(self):
+        return self.edges
 
     def print_nodes(self):
         """
@@ -309,7 +321,7 @@ def return_name()->str:
     e.g., gburdell3
     Do not return your 9 digit GTId
     """
-    return NotImplemented
+    return GT_USERNAME
 
 
 def return_argo_lite_snapshot()->str:
@@ -324,16 +336,17 @@ def return_argo_lite_snapshot()->str:
 # Some boilerplate/sample code is provided for demonstration. We will not call __main__ during grading.
 
 if __name__ == "__main__":
-
+    print(return_name())
     graph = Graph()
     graph.add_node(id='2975', name='Laurence Fishburne')
-    tmdb_api_utils = TMDBAPIUtils(api_key='<your API key>')
+    #tmdb_api_utils = TMDBAPIUtils(api_key='<your API key>')
+    graph.print_nodes()
 
     # call functions or place code here to build graph (graph building code not graded)
     # Suggestion: code should contain steps outlined above in BUILD CO-ACTOR NETWORK
 
-    graph.write_edges_file()
-    graph.write_nodes_file()
+    #graph.write_edges_file()
+    #graph.write_nodes_file()
 
     # If you have already built & written out your graph, you could read in your nodes & edges files
     # to perform testing on your graph.
