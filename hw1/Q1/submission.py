@@ -3,6 +3,11 @@ import json
 import csv
 
 GT_USERNAME = 'dhislop3'
+TMDB_API_KEY = 'redacted'
+TMDB_URL = 'api.themoviedb.org'
+TMDB_VERSION = '3'
+TMDB_LANG = 'en-US'
+
 
 #############################################################################################################################
 # cse6242 
@@ -168,8 +173,26 @@ class  TMDBAPIUtils:
 
     # Do not modify
     def __init__(self, api_key:str):
-        self.api_key=api_key
+        self.api_key = api_key
 
+    def form_url(self, search_method, search_id):
+        self.url = '/' + TMDB_VERSION + '/' + search_method + '/' + search_id + '?api_key=' + TMDB_API_KEY + '&language=' + TMDB_LANG
+    
+    def lookup(self):
+        # https://api.themoviedb.org/3/person/2975?api_key=02697bdf1da5cb37143a7004b96156bd&language=en-US
+        conn = http.client.HTTPSConnection(TMDB_URL)
+
+        print("looking up ", self.url)
+        conn.request("GET", self.url)
+
+        r1 = conn.getresponse()
+        print(r1.status, r1.reason)
+        if r1.status == 200:
+            string_data1 = r1.read().decode('utf-8')
+            data1 = json.loads(string_data1)
+            print(type(data1), data1)
+        return data1
+        
 
     def get_movie_cast(self, movie_id:str, limit:int=None, exclude_ids:list=None) -> list:
         """
@@ -339,7 +362,12 @@ if __name__ == "__main__":
     print(return_name())
     graph = Graph()
     graph.add_node(id='2975', name='Laurence Fishburne')
-    #tmdb_api_utils = TMDBAPIUtils(api_key='<your API key>')
+    tmdb_api_utils = TMDBAPIUtils(api_key=TMDB_API_KEY)
+    tmdb_api_utils.form_url('person', '2975')
+    response = tmdb_api_utils.lookup()
+    print(response['popularity'])
+
+
     graph.print_nodes()
 
     # call functions or place code here to build graph (graph building code not graded)
