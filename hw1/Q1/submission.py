@@ -175,11 +175,19 @@ class  TMDBAPIUtils:
     def __init__(self, api_key:str):
         self.api_key = api_key
 
-    def form_url(self, search_method, search_id):
-        self.url = '/' + TMDB_VERSION + '/' + search_method + '/' + search_id + '?api_key=' + TMDB_API_KEY + '&language=' + TMDB_LANG
-    
+    def form_url_person_detail(self, search_id):
+        self.url = '/' + TMDB_VERSION + '/person/' + search_id + '?api_key=' + TMDB_API_KEY + '&language=' + TMDB_LANG
+
+    def form_url_person_credits(self, search_id):
+        self.url = '/' + TMDB_VERSION + '/person/' + search_id + '/movie_credits' + '?api_key=' + TMDB_API_KEY + '&language=' + TMDB_LANG
+
+    def form_url_movie_credits(self, search_id):
+        self.url = '/' + TMDB_VERSION + '/movie/' + search_id + '/credits' + '?api_key=' + TMDB_API_KEY + '&language=' + TMDB_LANG
+
+    def form_url_search(self, search_id):
+        self.url = '/' + TMDB_VERSION + '/search/person' + '?api_key=' + TMDB_API_KEY + '&language=' + TMDB_LANG + '&query=' + search_id 
+
     def lookup(self):
-        # https://api.themoviedb.org/3/person/2975?api_key=02697bdf1da5cb37143a7004b96156bd&language=en-US
         conn = http.client.HTTPSConnection(TMDB_URL)
 
         print("looking up ", self.url)
@@ -190,9 +198,31 @@ class  TMDBAPIUtils:
         if r1.status == 200:
             string_data1 = r1.read().decode('utf-8')
             data1 = json.loads(string_data1)
-            print(type(data1), data1)
         return data1
-        
+
+    def get_filtered_movie_cast(self, api_response:dict, limit:int=None, exclude_ids:list=None)->list:
+        """ note I am not ordering the results, only using the 'order' field returned to limit"""
+        print("\n", api_response, "\n")
+        output = []
+        if limit == None: # for this exercise I arbitrarily limit to 5 if no limit is specified. will the tests to pass include None ?
+            filtered_limit=5-1
+        else:
+            filtered_limit=limit-1
+
+        if exclude_ids == None:
+            filtered_exclude_ids = []
+        else:
+            filtered_exclude_ids = exclude_ids
+
+        if 'cast' in api_response:
+            for item in api_response['cast']:
+                if item['id'] in filtered_exclude_ids:
+                    pass
+                elif item['order'] <= filtered_limit:
+                    output.append({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id']})
+                    #temp
+                    print({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id'], 'order':item['order']})
+        return output
 
     def get_movie_cast(self, movie_id:str, limit:int=None, exclude_ids:list=None) -> list:
         """
@@ -220,8 +250,30 @@ class  TMDBAPIUtils:
 
         Important: the exclude_ids processing should occur prior to limiting output.
         """
-        return NotImplemented
+        print("processing movie id", movie_id)
+        tmdb_api_utils.form_url_movie_credits(str(movie_id)) #should this be a string?
+        response = tmdb_api_utils.lookup()
+        filtered_response = tmdb_api_utils.get_filtered_movie_cast(response, limit, exclude_ids)
 
+        return filtered_response
+
+    def loop_movies(self, credits:list, limit=None, exclude_ids:list=None):
+        """ loop through each movie id in credits, getting the cast for each movie """
+        for item in credits:
+            self.get_movie_cast(item['id'], limit, exclude_ids)
+
+    def get_filtered_movie_credits(self, api_response:dict, vote_avg_threshold:float=None)->list:
+        output = []
+        if vote_avg_threshold == None:
+            filtered_vote_avg_threshold=0.0
+        else:
+            filtered_vote_avg_threshold=vote_avg_threshold
+
+        if 'cast' in api_response:
+            for item in api_response['cast']:
+                if item['vote_average'] >= filtered_vote_avg_threshold:
+                    output.append({'id':item['id'], 'title':item['title'], 'vote_avg':item['vote_average']})
+        return output
 
     def get_movie_credits_for_person(self, person_id:str, vote_avg_threshold:float=None)->list:
         """
@@ -238,7 +290,11 @@ class  TMDBAPIUtils:
                 'title': 'Long, Stock and Two Smoking Barrels' # the title (not original title) of the credit
                 'vote_avg': 5.0 # the float value of the vote average value for the credit}, ... ]
         """
-        return NotImplemented
+        tmdb_api_utils.form_url_person_credits(person_id)
+        response = tmdb_api_utils.lookup()
+        filtered_response = tmdb_api_utils.get_filtered_movie_credits(response, vote_avg_threshold)
+
+        return filtered_response
 
 
 #############################################################################################################################
@@ -363,12 +419,21 @@ if __name__ == "__main__":
     graph = Graph()
     graph.add_node(id='2975', name='Laurence Fishburne')
     tmdb_api_utils = TMDBAPIUtils(api_key=TMDB_API_KEY)
-    tmdb_api_utils.form_url('person', '2975')
+    tmdb_api_utils.form_url_person_detail('2975')
     response = tmdb_api_utils.lookup()
-    print(response['popularity'])
+    
+    credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.5)
+    print(credits)
+
+    tmdb_api_utils.loop_movies(credits,None, [1107983,110380])
+
+    #credits = tmdb_api_utils.get_movie_credits_for_person('1397778') # Anya
+        
+
+    #print(response['popularity'])
 
 
-    graph.print_nodes()
+    #graph.print_nodes()
 
     # call functions or place code here to build graph (graph building code not graded)
     # Suggestion: code should contain steps outlined above in BUILD CO-ACTOR NETWORK
