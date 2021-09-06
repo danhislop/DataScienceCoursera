@@ -204,8 +204,8 @@ class  TMDBAPIUtils:
         """ note I am not ordering the results, only using the 'order' field returned to limit"""
         print("\n", api_response, "\n")
         output = []
-        if limit == None: # for this exercise I arbitrarily limit to 5 if no limit is specified. will the tests to pass include None ?
-            filtered_limit=5-1
+        if limit == None: #  if no limit is specified, set to arbitrarily high int
+            filtered_limit=99999
         else:
             filtered_limit=limit-1
 
@@ -251,9 +251,9 @@ class  TMDBAPIUtils:
         Important: the exclude_ids processing should occur prior to limiting output.
         """
         print("processing movie id", movie_id)
-        tmdb_api_utils.form_url_movie_credits(str(movie_id)) #should this be a string?
-        response = tmdb_api_utils.lookup()
-        filtered_response = tmdb_api_utils.get_filtered_movie_cast(response, limit, exclude_ids)
+        self.form_url_movie_credits(str(movie_id)) #should this be a string?
+        response = self.lookup()
+        filtered_response = self.get_filtered_movie_cast(response, limit, exclude_ids)
 
         return filtered_response
 
@@ -265,7 +265,7 @@ class  TMDBAPIUtils:
     def get_filtered_movie_credits(self, api_response:dict, vote_avg_threshold:float=None)->list:
         output = []
         if vote_avg_threshold == None:
-            filtered_vote_avg_threshold=0.0
+            filtered_vote_avg_threshold=0.0 # if no threshold, set to arbitrarily low
         else:
             filtered_vote_avg_threshold=vote_avg_threshold
 
@@ -290,9 +290,9 @@ class  TMDBAPIUtils:
                 'title': 'Long, Stock and Two Smoking Barrels' # the title (not original title) of the credit
                 'vote_avg': 5.0 # the float value of the vote average value for the credit}, ... ]
         """
-        tmdb_api_utils.form_url_person_credits(person_id)
-        response = tmdb_api_utils.lookup()
-        filtered_response = tmdb_api_utils.get_filtered_movie_credits(response, vote_avg_threshold)
+        self.form_url_person_credits(person_id)
+        response = self.lookup()
+        filtered_response = self.get_filtered_movie_credits(response, vote_avg_threshold)
 
         return filtered_response
 
@@ -426,6 +426,8 @@ if __name__ == "__main__":
     print(credits)
 
     tmdb_api_utils.loop_movies(credits,None, [1107983,110380])
+
+    print(tmdb_api_utils.get_movie_cast('329'))
 
     #credits = tmdb_api_utils.get_movie_credits_for_person('1397778') # Anya
         

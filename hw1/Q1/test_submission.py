@@ -67,7 +67,7 @@ class TestUtils(unittest.TestCase):
     def test_get_filtered_movie_cast_none(self):
         # Assumes no exclusions and function's default limit of 4
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast)
-        self.assertEqual(response, [{'id': 1107983, 'character': 'Himself (archive footage)', 'credit_id': '52fe4ca7c3a368484e1c0de1'},{'id': 52057, 'character': 'Narrator', 'credit_id': '52fe4ca7c3a368484e1c0ddd'},{'id': 110380, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0de5'},{'id': 2975, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0de9'},{'id': 89289, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0ded'}])
+        self.assertEqual(len(response), 11)
 
     def test_get_filtered_movie_cast_limit3(self):
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, 3)
@@ -81,6 +81,6 @@ class TestUtils(unittest.TestCase):
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, 3, [1107983,110380])
         self.assertEqual(response, [{'id': 52057, 'character': 'Narrator', 'credit_id': '52fe4ca7c3a368484e1c0ddd'}])
 
-    def test_get_filtered_movie_cast_limitnone_exclude2(self):
-        response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, None, [1107983,110380])
-        self.assertEqual(response, [{'id': 52057, 'character': 'Narrator', 'credit_id': '52fe4ca7c3a368484e1c0ddd'},{'id': 2975, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0de9'},{'id': 89289, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0ded'}])
+    def test_get_filtered_movie_cast_limitnone_excludelots(self):
+        response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, None, [1107983,110380, 52057, 2975, 89289,19742,13301,31309,23628,115768])
+        self.assertEqual(response, [{'id': 334719, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0df9'}])
