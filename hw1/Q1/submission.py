@@ -72,9 +72,13 @@ class Graph:
         """
         assert isinstance(id, str)
         assert isinstance(name, str)
+        name = name.replace(',', '')
         if not self.node_exists((id, name)):
             self.nodes.append((id, name))
 
+    def edge_exists(self, a, b):
+        """ Return true if an edge exists already, in either order """
+        return ((a,b) in self.edges or (b,a) in self.edges)
 
     def add_edge(self, source: str, target: str) -> None:
         """
@@ -83,8 +87,11 @@ class Graph:
         Where 'source' is the id of the source node and 'target' is the id of the target node
         e.g., for two nodes with ids 'a' and 'b' respectively, add the tuple ('a', 'b') to self.edges
         """
-        return NotImplemented
+        assert isinstance(source, str)
+        assert isinstance(target, str)
 
+        if not self.edge_exists(source, target):
+            self.edges.append((source, target))
 
     def total_nodes(self) -> int:
         """
@@ -99,16 +106,32 @@ class Graph:
         """
         return len(self.edges)
 
+    def find_highest_degree(self, count_dict) -> dict:
+        """ given a dict of counts for all node_ids, find the one that appears the most. return multiple if tied """
+        output = {}
+        highest_degree = max(count_dict.values()) # find highest count value
+        ids_with_highest_degree = [id for id, count in count_dict.items() if count == highest_degree] # find ids with highest count value
+        for id in ids_with_highest_degree:
+            output[id] = count_dict[id]
+        
+        return output
 
     def max_degree_nodes(self) -> dict:
         """
-        Return the node(s) with the highest degree
+        Return the node(s) with the highest degree # e.g. how many times the id appears in the edges
         Return multiple nodes in the event of a tie
         Format is a dict where the key is the node_id and the value is an integer for the node degree
         e.g. {'a': 8}
         or {'a': 22, 'b': 22}
         """
-        return NotImplemented
+        list_of_ids = []
+        for x, y in self.edges:     # may not be efficient, but put all source and target ids into one long list
+            list_of_ids.append(x)
+            list_of_ids.append(y)
+
+        dn = dict((x,list_of_ids.count(x)) for x in set(list_of_ids))   # count occurences of each id in list
+        mdn = self.find_highest_degree(dn)
+        return mdn
 
     def get_nodes(self):
         return self.nodes
@@ -204,7 +227,7 @@ class  TMDBAPIUtils:
         """ note I am not ordering the results, only using the 'order' field returned to limit"""
         print("\n", api_response, "\n")
         output = []
-        if limit == None: #  if no limit is specified, set to arbitrarily high int
+        if limit == None: #  if no limit is specified, set to arbitrarily high int so that it can be compared, unlike None
             filtered_limit=99999
         else:
             filtered_limit=limit-1
@@ -417,17 +440,23 @@ def return_argo_lite_snapshot()->str:
 if __name__ == "__main__":
     print(return_name())
     graph = Graph()
-    graph.add_node(id='2975', name='Laurence Fishburne')
+    #graph.add_node(id='2975', name='Laurence Fishburne')
     tmdb_api_utils = TMDBAPIUtils(api_key=TMDB_API_KEY)
-    tmdb_api_utils.form_url_person_detail('2975')
-    response = tmdb_api_utils.lookup()
+    # tmdb_api_utils.form_url_person_detail('2975')
+    # response = tmdb_api_utils.lookup()
     
-    credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.5)
-    print(credits)
+    # credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.5)
+    # print(credits)
 
-    tmdb_api_utils.loop_movies(credits,None, [1107983,110380])
+    # tmdb_api_utils.loop_movies(credits,None, [1107983,110380])
 
-    print(tmdb_api_utils.get_movie_cast('329'))
+    # print(tmdb_api_utils.get_movie_cast('329'))
+
+    graph.add_edge(source='2975', target='3333')
+    graph.add_edge(source='4444', target='2975')
+    graph.add_edge(source='3333', target='1111')
+    #[('2975', '3333'),('4444', '2975')]
+    print(graph.max_degree_nodes())
 
     #credits = tmdb_api_utils.get_movie_credits_for_person('1397778') # Anya
         
