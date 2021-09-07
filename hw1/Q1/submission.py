@@ -1,6 +1,7 @@
 import http.client
 import json
 import csv
+from copy import deepcopy
 
 GT_USERNAME = 'dhislop3'
 TMDB_API_KEY = 'redacted'
@@ -78,7 +79,7 @@ class Graph:
 
     def edge_exists(self, a, b):
         """ Return true if an edge exists already, in either order """
-        return ((a,b) in self.edges or (b,a) in self.edges)
+        return ((a,b) in self.edges or (b,a) in self.edges or b == a)
 
     def add_edge(self, source: str, target: str) -> None:
         """
@@ -191,7 +192,6 @@ class Graph:
         print("finished writing nodes to csv")
 
 
-
 class  TMDBAPIUtils:
 
     # Do not modify
@@ -236,15 +236,17 @@ class  TMDBAPIUtils:
             filtered_exclude_ids = []
         else:
             filtered_exclude_ids = exclude_ids
+        
+        print("----excluding ids", filtered_exclude_ids)
 
         if 'cast' in api_response:
             for item in api_response['cast']:
-                if item['id'] in filtered_exclude_ids:
+                if str(item['id']) in filtered_exclude_ids:
                     pass
                 elif item['order'] <= filtered_limit:
                     output.append({'id':item['id'], 'character':item['character'], 'name':item['name'], 'credit_id':item['credit_id']})
                     #temp
-                    print({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id'], 'name':item['name'], 'order':item['order']})
+                    #print({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id'], 'name':item['name'], 'order':item['order']})
         return output
 
     def get_movie_cast(self, movie_id:str, limit:int=None, exclude_ids:list=None) -> list:
@@ -321,102 +323,6 @@ class  TMDBAPIUtils:
         return filtered_response
 
 
-#############################################################################################################################
-#
-# BUILDING YOUR GRAPH
-#
-# Working with the API:  See use of http.request: https://docs.python.org/3/library/http.client.html#examples
-#
-# Using TMDb's API, build a co-actor network for the actor's/actress' highest rated movies
-# In this graph, each node represents an actor
-# An edge between any two nodes indicates that the two actors/actresses acted in a movie together
-# i.e., they share a movie credit.
-# e.g., An edge between Samuel L. Jackson and Robert Downey Jr. indicates that they have acted in one
-# or more movies together.
-#
-# For this assignment, we are interested in a co-actor network of highly rated movies; specifically,
-# we only want the top 3 co-actors in each movie credit of an actor having a vote average >= 8.0.
-# Build your co-actor graph on the actor 'Laurence Fishburne' w/ person_id 2975.
-#
-# You will need to add extra functions or code to accomplish this.  We will not directly call or explicitly grade your
-# algorithm. We will instead measure the correctness of your output by evaluating the data in your argo-lite graph
-# snapshot.
-#
-# GRAPH SIZE
-# With each iteration of your graph build, the number of nodes and edges grows approximately at an exponential rate.
-# Our testing indicates growth approximately equal to e^2x.
-# Since the TMDB API is a live database, the number of nodes / edges in the final graph will vary slightly depending on when
-# you execute your graph building code. We take this into account by rebuilding the solution graph every few days and
-# updating the auto-grader.  We establish a bound for lowest & highest encountered numbers of nodes and edges with a
-# margin of +/- 100 for nodes and +/- 150 for edges.  e.g., The allowable range of nodes is set to:
-#
-# Min allowable nodes = min encountered nodes - 100
-# Max allowable nodes = max allowable nodes + 100
-#
-# e.g., if the minimum encountered nodes = 507 and the max encountered nodes = 526, then the min/max range is 407-626
-# The same method is used to calculate the edges with the exception of using the aforementioned edge margin.
-# ----------------------------------------------------------------------------------------------------------------------
-# BEGIN BUILD CO-ACTOR NETWORK
-#
-# INITIALIZE GRAPH
-#   Initialize a Graph object with a single node representing Laurence Fishburne
-#
-# BEGIN BUILD BASE GRAPH:
-#   Find all of Laurence Fishburne's movie credits that have a vote average >= 8.0
-#   FOR each movie credit:
-#   |   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
-#   |
-#   |   FOR each movie cast member:
-#   |   |   using graph.add_node(), add the movie cast member as a node (keep track of all new nodes added to the graph)
-#   |   |   using graph.add_edge(), add an edge between the Laurence Fishburne (actress) node
-#   |   |   and each new node (co-actor/co-actress)
-#   |   END FOR
-#   END FOR
-# END BUILD BASE GRAPH
-#
-#
-# BEGIN LOOP - DO 2 TIMES:
-#   IF first iteration of loop:
-#   |   nodes = The nodes added in the BUILD BASE GRAPH (this excludes the original node of Laurence Fishburne!)
-#   ELSE
-#   |    nodes = The nodes added in the previous iteration:
-#   ENDIF
-#
-#   FOR each node in nodes:
-#   |  get the movie credits for the actor that have a vote average >= 8.0
-#   |
-#   |   FOR each movie credit:
-#   |   |   try to get the 3 movie cast members having an 'order' value between 0-2
-#   |   |
-#   |   |   FOR each movie cast member:
-#   |   |   |   IF the node doesn't already exist:
-#   |   |   |   |    add the node to the graph (track all new nodes added to the graph)
-#   |   |   |   ENDIF
-#   |   |   |
-#   |   |   |   IF the edge does not exist:
-#   |   |   |   |   add an edge between the node (actor) and the new node (co-actor/co-actress)
-#   |   |   |   ENDIF
-#   |   |   END FOR
-#   |   END FOR
-#   END FOR
-# END LOOP
-#
-# Your graph should not have any duplicate edges or nodes
-# Write out your finished graph as a nodes file and an edges file using:
-#   graph.write_edges_file()
-#   graph.write_nodes_file()
-#
-# END BUILD CO-ACTOR NETWORK
-# ----------------------------------------------------------------------------------------------------------------------
-
-# Exception handling and best practices
-# - You should use the param 'language=en-US' in all API calls to avoid encoding issues when writing data to file.
-# - If the actor name has a comma char ',' it should be removed to prevent extra columns from being inserted into the .csv file
-# - Some movie_credits may actually be collections and do not return cast data. Handle this situation by skipping these instances.
-# - While The TMDb API does not have a rate-limiting scheme in place, consider that making hundreds / thousands of calls
-#   can occasionally result in timeout errors. If you continue to experience 'ConnectionRefusedError : [Errno 61] Connection refused',
-#   - wait a while and then try again.  It may be necessary to insert periodic sleeps when you are building your graph.
-
 
 def return_name()->str:
     """
@@ -439,30 +345,11 @@ def return_argo_lite_snapshot()->str:
 # Some boilerplate/sample code is provided for demonstration. We will not call __main__ during grading.
 
 if __name__ == "__main__":
-
     # tmdb_api_utils.form_url_person_detail('2975')
     # response = tmdb_api_utils.lookup()
-    
+    # credits = tmdb_api_utils.get_movie_credits_for_person('1397778') # Anya    
     # print(credits)
-
-
-
-    # print(tmdb_api_utils.get_movie_cast('329'))
-
-    # graph.add_edge(source='2975', target='3333')
-    # graph.add_edge(source='4444', target='2975')
-    # graph.add_edge(source='3333', target='1111')
-    # #[('2975', '3333'),('4444', '2975')]
     # print(graph.max_degree_nodes())
-
-    #credits = tmdb_api_utils.get_movie_credits_for_person('1397778') # Anya
-
-
-    # call functions or place code here to build graph (graph building code not graded)
-    # Suggestion: code should contain steps outlined above in BUILD CO-ACTOR NETWORK
-
-
-
 
 
     # BEGIN BUILD CO-ACTOR NETWORK
@@ -477,29 +364,72 @@ if __name__ == "__main__":
 
     # BEGIN BUILD BASE GRAPH:
     #   Find all of Laurence Fishburne's movie credits that have a vote average >= 8.0
+    graph_base = Graph()
     base_credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.0)
     print("credits meeting 8.0 for LF ", base_credits)
     #   FOR each movie credit:
     for movie in base_credits:
-#   |   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
-        cast = tmdb_api_utils.get_movie_cast(movie['id'], 3, None)   # could exclude id's here
-        print(cast)
+    #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
+        cast = tmdb_api_utils.get_movie_cast(movie['id'], 3, ['2975'])   # could exclude id's here
+
     #   |   FOR each movie cast member:
+        for member in cast:
+            graph_base.add_node(str(member['id']), member['name'])
+            graph_base.add_edge(source='2975', target=str(member['id']))
     #   |   |   using graph.add_node(), add the movie cast member as a node (keep track of all new nodes added to the graph)
     #   |   |   using graph.add_edge(), add an edge between the Laurence Fishburne (actress) node
     #   |   |   and each new node (co-actor/co-actress)
     #   |   END FOR
     #   END FOR
     # END BUILD BASE GRAPH
+    print(f"-{len(graph_base.nodes)}-nodes---")
+    graph_base.print_nodes()
+    print(f"-{len(graph_base.edges)}--edges---")
+    graph_base.print_edges()
+
+    graph.print_nodes()
     #
     #
     # BEGIN LOOP - DO 2 TIMES:
+    for loop in range(2):
+        if loop == 0:
     #   IF first iteration of loop:
     #   |   nodes = The nodes added in the BUILD BASE GRAPH (this excludes the original node of Laurence Fishburne!)
+            graph_loop1 = Graph()
+            graph_now = deepcopy(graph_loop1)
+            print("instantiating graph_now, it has", graph_now.print_nodes())
+            nodes = graph_base.nodes
+        else:
+            print("skip second loop", loop)
+            pass
     #   ELSE
     #   |    nodes = The nodes added in the previous iteration:
     #   ENDIF
-    #
+        for node in nodes:
+            print("my node is", type(node), node)
+            print(node[0])
+            node_credits = tmdb_api_utils.get_movie_credits_for_person(node[0], 8.0)
+            print(f"credits meeting 8.0 for {node[1]}")
+            #   FOR each movie credit:
+            for movie in node_credits:
+            #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
+                cast = tmdb_api_utils.get_movie_cast(movie['id'], 3, str(node[0]))
+
+            #   |   FOR each movie cast member:
+                for member in cast:
+                    graph_now.add_node(str(member['id']), member['name'])
+                    graph_now.add_edge(source=str(node[0]), target=str(member['id']))
+            #   |   |   using graph.add_node(), add the movie cast member as a node (keep track of all new nodes added to the graph)
+            #   |   |   using graph.add_edge(), add an edge between the Laurence Fishburne (actress) node
+            #   |   |   and each new node (co-actor/co-actress)
+            #   |   END FOR
+            #   END FOR
+            # END BUILD BASE GRAPH
+        print(f"-{len(graph_now.nodes)}-nodes---")
+        graph_now.print_nodes()
+        print(f"-{len(graph_now.edges)}--edges---")
+        graph_now.print_edges()
+
     #   FOR each node in nodes:
     #   |  get the movie credits for the actor that have a vote average >= 8.0
     #   |
@@ -525,7 +455,54 @@ if __name__ == "__main__":
     #   graph.write_nodes_file()
     #
     # END BUILD CO-ACTOR NETWORK
+    # ----------------------------------------------------------------------------------------------------------------------
+
+    # Exception handling and best practices
+    # - You should use the param 'language=en-US' in all API calls to avoid encoding issues when writing data to file.
+    # - If the actor name has a comma char ',' it should be removed to prevent extra columns from being inserted into the .csv file
+    # - Some movie_credits may actually be collections and do not return cast data. Handle this situation by skipping these instances.
+    # - While The TMDb API does not have a rate-limiting scheme in place, consider that making hundreds / thousands of calls
+    #   can occasionally result in timeout errors. If you continue to experience 'ConnectionRefusedError : [Errno 61] Connection refused',
+    #   - wait a while and then try again.  It may be necessary to insert periodic sleeps when you are building your graph.
+
 
     # If you have already built & written out your graph, you could read in your nodes & edges files
     # to perform testing on your graph.
     # graph = Graph(with_edges_file="edges.csv", with_nodes_file="nodes.csv")
+
+
+    #############################################################################################################################
+    #
+    # BUILDING YOUR GRAPH
+    #
+    # Working with the API:  See use of http.request: https://docs.python.org/3/library/http.client.html#examples
+    #
+    # Using TMDb's API, build a co-actor network for the actor's/actress' highest rated movies
+    # In this graph, each node represents an actor
+    # An edge between any two nodes indicates that the two actors/actresses acted in a movie together
+    # i.e., they share a movie credit.
+    # e.g., An edge between Samuel L. Jackson and Robert Downey Jr. indicates that they have acted in one
+    # or more movies together.
+    #
+    # For this assignment, we are interested in a co-actor network of highly rated movies; specifically,
+    # we only want the top 3 co-actors in each movie credit of an actor having a vote average >= 8.0.
+    # Build your co-actor graph on the actor 'Laurence Fishburne' w/ person_id 2975.
+    #
+    # You will need to add extra functions or code to accomplish this.  We will not directly call or explicitly grade your
+    # algorithm. We will instead measure the correctness of your output by evaluating the data in your argo-lite graph
+    # snapshot.
+    #
+    # GRAPH SIZE
+    # With each iteration of your graph build, the number of nodes and edges grows approximately at an exponential rate.
+    # Our testing indicates growth approximately equal to e^2x.
+    # Since the TMDB API is a live database, the number of nodes / edges in the final graph will vary slightly depending on when
+    # you execute your graph building code. We take this into account by rebuilding the solution graph every few days and
+    # updating the auto-grader.  We establish a bound for lowest & highest encountered numbers of nodes and edges with a
+    # margin of +/- 100 for nodes and +/- 150 for edges.  e.g., The allowable range of nodes is set to:
+    #
+    # Min allowable nodes = min encountered nodes - 100
+    # Max allowable nodes = max allowable nodes + 100
+    #
+    # e.g., if the minimum encountered nodes = 507 and the max encountered nodes = 526, then the min/max range is 407-626
+    # The same method is used to calculate the edges with the exception of using the aforementioned edge margin.
+    # ----------------------------------------------------------------------------------------------------------------------
