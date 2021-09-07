@@ -114,16 +114,19 @@ class TestUtils(unittest.TestCase):
 
     def test_get_filtered_movie_cast_limit3(self):
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, 3)
-        self.assertEqual(response, [{'id': 1107983, 'character': 'Himself (archive footage)', 'credit_id': '52fe4ca7c3a368484e1c0de1'},{'id': 52057, 'character': 'Narrator', 'credit_id': '52fe4ca7c3a368484e1c0ddd'},{'id': 110380, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0de5'}])
+        response_ids = [{'id':item['id']} for item in response] # narrow results to purpose of test; allows flexibility in returned fields for each id
+        self.assertEqual(response_ids, [{'id': 1107983},{'id': 52057},{'id': 110380}])
 
     def test_get_filtered_movie_cast_limit3_exclude1(self):
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, 3, [1107983])
-        self.assertEqual(response, [{'id': 52057, 'character': 'Narrator', 'credit_id': '52fe4ca7c3a368484e1c0ddd'},{'id': 110380, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0de5'}])
+        response_ids = [{'id':item['id']} for item in response] # narrow results to purpose of test; allows flexibility in returned fields for each id
+        self.assertEqual(response_ids, [{'id': 52057},{'id': 110380}])
 
     def test_get_filtered_movie_cast_limit3_exclude2(self):
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, 3, [1107983,110380])
-        self.assertEqual(response, [{'id': 52057, 'character': 'Narrator', 'credit_id': '52fe4ca7c3a368484e1c0ddd'}])
+        self.assertEqual(response, [{'id': 52057, 'character': 'Narrator', 'name': 'Obba Babatundé', 'credit_id': '52fe4ca7c3a368484e1c0ddd'}])
 
     def test_get_filtered_movie_cast_limitnone_excludelots(self):
         response = self.tmdb_api_utils.get_filtered_movie_cast(response_cast, None, [1107983,110380, 52057, 2975, 89289,19742,13301,31309,23628,115768])
-        self.assertEqual(response, [{'id': 334719, 'character': 'Himself', 'credit_id': '52fe4ca7c3a368484e1c0df9'}])
+        response_ids = [{'id':item['id']} for item in response] # narrow results to purpose of test; allows flexibility in returned fields for each id
+        self.assertEqual(response_ids, [{'id': 334719}])

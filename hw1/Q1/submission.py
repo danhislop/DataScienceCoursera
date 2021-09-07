@@ -225,7 +225,7 @@ class  TMDBAPIUtils:
 
     def get_filtered_movie_cast(self, api_response:dict, limit:int=None, exclude_ids:list=None)->list:
         """ note I am not ordering the results, only using the 'order' field returned to limit"""
-        print("\n", api_response, "\n")
+        #print("\n", api_response, "\n")
         output = []
         if limit == None: #  if no limit is specified, set to arbitrarily high int so that it can be compared, unlike None
             filtered_limit=99999
@@ -242,9 +242,9 @@ class  TMDBAPIUtils:
                 if item['id'] in filtered_exclude_ids:
                     pass
                 elif item['order'] <= filtered_limit:
-                    output.append({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id']})
+                    output.append({'id':item['id'], 'character':item['character'], 'name':item['name'], 'credit_id':item['credit_id']})
                     #temp
-                    print({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id'], 'order':item['order']})
+                    print({'id':item['id'], 'character':item['character'], 'credit_id':item['credit_id'], 'name':item['name'], 'order':item['order']})
         return output
 
     def get_movie_cast(self, movie_id:str, limit:int=None, exclude_ids:list=None) -> list:
@@ -280,7 +280,8 @@ class  TMDBAPIUtils:
 
         return filtered_response
 
-    def loop_movies(self, credits:list, limit=None, exclude_ids:list=None):
+    # This function may not be needed - or its replicated in main
+    def get_cast_from_movie_ids(self, credits:list, limit=None, exclude_ids:list=None):
         """ loop through each movie id in credits, getting the cast for each movie """
         for item in credits:
             self.get_movie_cast(item['id'], limit, exclude_ids)
@@ -438,39 +439,92 @@ def return_argo_lite_snapshot()->str:
 # Some boilerplate/sample code is provided for demonstration. We will not call __main__ during grading.
 
 if __name__ == "__main__":
-    print(return_name())
-    graph = Graph()
-    #graph.add_node(id='2975', name='Laurence Fishburne')
-    tmdb_api_utils = TMDBAPIUtils(api_key=TMDB_API_KEY)
+
     # tmdb_api_utils.form_url_person_detail('2975')
     # response = tmdb_api_utils.lookup()
     
-    # credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.5)
     # print(credits)
 
-    # tmdb_api_utils.loop_movies(credits,None, [1107983,110380])
+
 
     # print(tmdb_api_utils.get_movie_cast('329'))
 
-    graph.add_edge(source='2975', target='3333')
-    graph.add_edge(source='4444', target='2975')
-    graph.add_edge(source='3333', target='1111')
-    #[('2975', '3333'),('4444', '2975')]
-    print(graph.max_degree_nodes())
+    # graph.add_edge(source='2975', target='3333')
+    # graph.add_edge(source='4444', target='2975')
+    # graph.add_edge(source='3333', target='1111')
+    # #[('2975', '3333'),('4444', '2975')]
+    # print(graph.max_degree_nodes())
 
     #credits = tmdb_api_utils.get_movie_credits_for_person('1397778') # Anya
-        
 
-    #print(response['popularity'])
-
-
-    #graph.print_nodes()
 
     # call functions or place code here to build graph (graph building code not graded)
     # Suggestion: code should contain steps outlined above in BUILD CO-ACTOR NETWORK
 
-    #graph.write_edges_file()
-    #graph.write_nodes_file()
+
+
+
+
+    # BEGIN BUILD CO-ACTOR NETWORK
+    #
+    # INITIALIZE GRAPH
+    print(return_name())
+    graph = Graph()
+    tmdb_api_utils = TMDBAPIUtils(api_key=TMDB_API_KEY)
+    #   Initialize a Graph object with a single node representing Laurence Fishburne
+    graph.add_node(id='2975', name='Laurence Fishburne')
+    graph.print_nodes()
+
+    # BEGIN BUILD BASE GRAPH:
+    #   Find all of Laurence Fishburne's movie credits that have a vote average >= 8.0
+    base_credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.0)
+    print("credits meeting 8.0 for LF ", base_credits)
+    #   FOR each movie credit:
+    for movie in base_credits:
+#   |   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
+        cast = tmdb_api_utils.get_movie_cast(movie['id'], 3, None)   # could exclude id's here
+        print(cast)
+    #   |   FOR each movie cast member:
+    #   |   |   using graph.add_node(), add the movie cast member as a node (keep track of all new nodes added to the graph)
+    #   |   |   using graph.add_edge(), add an edge between the Laurence Fishburne (actress) node
+    #   |   |   and each new node (co-actor/co-actress)
+    #   |   END FOR
+    #   END FOR
+    # END BUILD BASE GRAPH
+    #
+    #
+    # BEGIN LOOP - DO 2 TIMES:
+    #   IF first iteration of loop:
+    #   |   nodes = The nodes added in the BUILD BASE GRAPH (this excludes the original node of Laurence Fishburne!)
+    #   ELSE
+    #   |    nodes = The nodes added in the previous iteration:
+    #   ENDIF
+    #
+    #   FOR each node in nodes:
+    #   |  get the movie credits for the actor that have a vote average >= 8.0
+    #   |
+    #   |   FOR each movie credit:
+    #   |   |   try to get the 3 movie cast members having an 'order' value between 0-2
+    #   |   |
+    #   |   |   FOR each movie cast member:
+    #   |   |   |   IF the node doesn't already exist:
+    #   |   |   |   |    add the node to the graph (track all new nodes added to the graph)
+    #   |   |   |   ENDIF
+    #   |   |   |
+    #   |   |   |   IF the edge does not exist:
+    #   |   |   |   |   add an edge between the node (actor) and the new node (co-actor/co-actress)
+    #   |   |   |   ENDIF
+    #   |   |   END FOR
+    #   |   END FOR
+    #   END FOR
+    # END LOOP
+    #
+    # Your graph should not have any duplicate edges or nodes
+    # Write out your finished graph as a nodes file and an edges file using:
+    #   graph.write_edges_file()
+    #   graph.write_nodes_file()
+    #
+    # END BUILD CO-ACTOR NETWORK
 
     # If you have already built & written out your graph, you could read in your nodes & edges files
     # to perform testing on your graph.
