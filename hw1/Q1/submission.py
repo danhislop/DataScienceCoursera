@@ -370,7 +370,7 @@ if __name__ == "__main__":
     #   FOR each movie credit:
     for movie in base_credits:
     #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
-        cast = tmdb_api_utils.get_movie_cast(movie['id'], 3, ['2975'])   # could exclude id's here
+        cast = tmdb_api_utils.get_movie_cast(movie['id'], 1, ['2975'])   # set to 3
 
     #   |   FOR each movie cast member:
         for member in cast:
@@ -382,38 +382,41 @@ if __name__ == "__main__":
     #   |   END FOR
     #   END FOR
     # END BUILD BASE GRAPH
-    print(f"-{len(graph_base.nodes)}-nodes---")
-    graph_base.print_nodes()
-    print(f"-{len(graph_base.edges)}--edges---")
-    graph_base.print_edges()
 
-    graph.print_nodes()
     #
     #
     # BEGIN LOOP - DO 2 TIMES:
-    for loop in range(2):
-        if loop == 0:
     #   IF first iteration of loop:
     #   |   nodes = The nodes added in the BUILD BASE GRAPH (this excludes the original node of Laurence Fishburne!)
+    #   ELSE
+    #   |    nodes = The nodes added in the previous iteration:
+    #   ENDIF
+
+    for loop in range(2):
+        if loop == 0:
+            print(f"*** START LOOP {loop} ********************************************************************************************************************{loop}")
+
             graph_loop1 = Graph()
             graph_now = deepcopy(graph_loop1)
             print("instantiating graph_now, it has", graph_now.print_nodes())
             nodes = graph_base.nodes
         else:
-            print("skip second loop", loop)
+            print(f"*** START LOOP {loop} ********************************************************************************************************************{loop}")
+            nodes = deepcopy(graph_now.nodes) # This must be BEFORE resetting graph)now below
+            graph_loop2 = Graph()
+            graph_now = deepcopy(graph_loop2)
+            print("instantiating graph_now, it has", graph_now.print_nodes())
+
             pass
-    #   ELSE
-    #   |    nodes = The nodes added in the previous iteration:
-    #   ENDIF
+
         for node in nodes:
-            print("my node is", type(node), node)
-            print(node[0])
+            print("my node is", node)
             node_credits = tmdb_api_utils.get_movie_credits_for_person(node[0], 8.0)
             print(f"credits meeting 8.0 for {node[1]}")
             #   FOR each movie credit:
             for movie in node_credits:
             #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
-                cast = tmdb_api_utils.get_movie_cast(movie['id'], 3, str(node[0]))
+                cast = tmdb_api_utils.get_movie_cast(movie['id'], 1, str(node[0]))  # set to 3
 
             #   |   FOR each movie cast member:
                 for member in cast:
@@ -425,11 +428,20 @@ if __name__ == "__main__":
             #   |   END FOR
             #   END FOR
             # END BUILD BASE GRAPH
-        print(f"-{len(graph_now.nodes)}-nodes---")
+        
+        print(f"-{len(graph_now.nodes)}-nodes loop {loop}---")
         graph_now.print_nodes()
-        print(f"-{len(graph_now.edges)}--edges---")
+        print(f"-{len(graph_now.edges)}--edges loop {loop}---")
         graph_now.print_edges()
 
+    print(f"-{len(graph_base.nodes)}-base nodes---")
+    graph_base.print_nodes()
+    print(f"-{len(graph_base.edges)}--base edges---")
+    graph_base.print_edges()
+
+    print(f"-{len(graph.nodes)}--original nodes---")
+    graph.print_nodes()
+        
     #   FOR each node in nodes:
     #   |  get the movie credits for the actor that have a vote average >= 8.0
     #   |
