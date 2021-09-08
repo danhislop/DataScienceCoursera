@@ -121,6 +121,16 @@ class Graph:
 
         return non_leaf_count
 
+    def find_lowest_degree(self) -> dict:
+        """ given a dict of counts for all node_ids, find the ones that appear the least. return multiple if tied """
+        output = {}
+        highest_degree = min(self.dn.values()) # find lowest count value
+        ids_with_highest_degree = [id for id, count in self.dn.items() if count == highest_degree] # find ids with highest count value
+        for id in ids_with_highest_degree:
+            output[id] = self.dn[id]
+        
+        return output
+
     def find_highest_degree(self, count_dict) -> dict:
         """ given a dict of counts for all node_ids, find the one that appears the most. return multiple if tied """
         output = {}
@@ -346,7 +356,7 @@ def return_argo_lite_snapshot()->str:
     """
     Return the shared URL of your published graph in Argo-Lite
     """
-    return 'https://poloclub.github.io/argo-graph-lite/#34140b8d-f517-4f37-b7c9-c72429cac4af'
+    return 'https://poloclub.github.io/argo-graph-lite/#749377dc-0daf-4958-afc8-2eb6d375b4b2'
 
 
 
