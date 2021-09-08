@@ -61,20 +61,20 @@ class HW2_sql():
 
     # GTusername [0 points]
     def GTusername(self):
-        gt_username = "gburdell3"
+        gt_username = "dhislop3"
         return gt_username
     
     # Part a.i Create Tables [2 points]
     def part_ai_1(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_ai_1_sql = ""
+        part_ai_1_sql = "CREATE TABLE movies(id integer, title text, score real);"
         ######################################################################
         
         return self.execute_query(connection, part_ai_1_sql)
 
     def part_ai_2(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_ai_2_sql = ""
+        part_ai_2_sql = "CREATE TABLE movie_cast(movie_id integer, cast_id integer, cast_name text, birthday text, popularity real);"
         ######################################################################
         
         return self.execute_query(connection, part_ai_2_sql)
@@ -82,7 +82,11 @@ class HW2_sql():
     # Part a.ii Import Data [2 points]
     def part_aii_1(self,connection,path):
         ############### CREATE IMPORT CODE BELOW ############################
-
+        cur = connection.cursor()
+        a_file = open("./data/movies.csv")
+        rows = csv.reader(a_file)
+        cur.executemany("INSERT INTO movies VALUES (?, ?, ?)", rows)
+        connection.commit()
        ######################################################################
         
         sql = "SELECT COUNT(id) FROM movies;"
@@ -91,7 +95,11 @@ class HW2_sql():
     
     def part_aii_2(self,connection, path):
         ############### CREATE IMPORT CODE BELOW ############################
-        
+        cur = connection.cursor()
+        a_file = open("./data/movie_cast.csv")
+        rows = csv.reader(a_file)
+        cur.executemany("INSERT INTO movie_cast VALUES (?, ?, ?, ?, ?)", rows)
+        connection.commit()
         ######################################################################
         
         sql = "SELECT COUNT(cast_id) FROM movie_cast;"
@@ -211,7 +219,7 @@ class HW2_sql():
 
 
 if __name__ == "__main__":
-    
+    print("HI ")
     ########################### DO NOT MODIFY THIS SECTION ##########################
     #################################################################################
     if SHOW == True:
@@ -243,8 +251,8 @@ if __name__ == "__main__":
     try:
         print('\033[32m' + "Row count for Movies Table: " + '\033[m' + str(db.part_aii_1(conn,"data/movies.csv")))
         print('\033[32m' + "Row count for Movie Cast Table: " + '\033[m' + str(db.part_aii_2(conn,"data/movie_cast.csv")))
-    except:
-        print("Error in part a.ii")
+    except Exception as e:
+        print("Error in part a.ii", e)
 
     try:
         print('\033[32m' + "Row count for Cast Bio Table: " + '\033[m' + str(db.part_aiii(conn)))
