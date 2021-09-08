@@ -10,6 +10,7 @@ TMDB_VERSION = '3'
 TMDB_LANG = 'en-US'
 
 
+
 #############################################################################################################################
 # cse6242 
 # All instructions, code comments, etc. contained within this notebook are part of the assignment instructions.
@@ -107,6 +108,19 @@ class Graph:
         """
         return len(self.edges)
 
+    def find_non_leaf_node_count(self) -> dict:
+        """ given a dict of counts for all node_ids, return a count of nodes only appearing once """
+        leaf_nodes = {}
+        ids_with_lowest_degree = [id for id, count in self.dn.items() if count == 1] # find ids appearing once
+        for id in ids_with_lowest_degree:
+            leaf_nodes[id] = self.dn[id]
+        non_leaf_count = len(self.dn) - len(leaf_nodes)
+        print("total number of nodes", len(self.dn))
+        print("total number of leaf nodes:", len(leaf_nodes))
+        print("total number of non-leaf nodes:", non_leaf_count )
+
+        return non_leaf_count
+
     def find_highest_degree(self, count_dict) -> dict:
         """ given a dict of counts for all node_ids, find the one that appears the most. return multiple if tied """
         output = {}
@@ -130,8 +144,8 @@ class Graph:
             list_of_ids.append(x)
             list_of_ids.append(y)
 
-        dn = dict((x,list_of_ids.count(x)) for x in set(list_of_ids))   # count occurences of each id in list
-        mdn = self.find_highest_degree(dn)
+        self.dn = dict((x,list_of_ids.count(x)) for x in set(list_of_ids))   # count occurences of each id in list
+        mdn = self.find_highest_degree(self.dn)
         return mdn
 
     def get_nodes(self):
@@ -213,7 +227,7 @@ class  TMDBAPIUtils:
     def lookup(self):
         conn = http.client.HTTPSConnection(TMDB_URL)
 
-        print("looking up ", self.url)
+        #print("looking up ", self.url)
         conn.request("GET", self.url)
 
         r1 = conn.getresponse()
@@ -236,12 +250,10 @@ class  TMDBAPIUtils:
             filtered_exclude_ids = []
         else:
             filtered_exclude_ids = exclude_ids
-        
-        print("----excluding ids", filtered_exclude_ids)
 
         if 'cast' in api_response:
             for item in api_response['cast']:
-                if str(item['id']) in filtered_exclude_ids:
+                if item['id'] in filtered_exclude_ids:
                     pass
                 elif item['order'] <= filtered_limit:
                     output.append({'id':item['id'], 'character':item['character'], 'name':item['name'], 'credit_id':item['credit_id']})
@@ -322,8 +334,6 @@ class  TMDBAPIUtils:
 
         return filtered_response
 
-
-
 def return_name()->str:
     """
     Return a string containing your GT Username
@@ -332,12 +342,11 @@ def return_name()->str:
     """
     return GT_USERNAME
 
-
 def return_argo_lite_snapshot()->str:
     """
     Return the shared URL of your published graph in Argo-Lite
     """
-    return NotImplemented
+    return 'https://poloclub.github.io/argo-graph-lite/#34140b8d-f517-4f37-b7c9-c72429cac4af'
 
 
 
@@ -351,6 +360,8 @@ if __name__ == "__main__":
     # print(credits)
     # print(graph.max_degree_nodes())
 
+    # INITIALIZE SUMMARY GRAPH
+    graph_summary = Graph()
 
     # BEGIN BUILD CO-ACTOR NETWORK
     #
@@ -362,20 +373,22 @@ if __name__ == "__main__":
     graph.add_node(id='2975', name='Laurence Fishburne')
     graph.print_nodes()
 
+
+
     # BEGIN BUILD BASE GRAPH:
     #   Find all of Laurence Fishburne's movie credits that have a vote average >= 8.0
-    graph_base = Graph()
-    base_credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.0)
-    print("credits meeting 8.0 for LF ", base_credits)
+    # graph_base = Graph()
+    # base_credits = tmdb_api_utils.get_movie_credits_for_person('2975', 8.0)
+    # print("credits meeting 8.0 for LF ", base_credits)
     #   FOR each movie credit:
-    for movie in base_credits:
-    #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
-        cast = tmdb_api_utils.get_movie_cast(movie['id'], 1, ['2975'])   # set to 3
+    # for movie in base_credits:
+    # #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
+    #     cast = tmdb_api_utils.get_movie_cast(movie['id'], 1, ['2975'])   # set to 3
 
-    #   |   FOR each movie cast member:
-        for member in cast:
-            graph_base.add_node(str(member['id']), member['name'])
-            graph_base.add_edge(source='2975', target=str(member['id']))
+    # #   |   FOR each movie cast member:
+    #     for member in cast:
+    #         graph_base.add_node(str(member['id']), member['name'])
+    #         graph_base.add_edge(source='2975', target=str(member['id']))
     #   |   |   using graph.add_node(), add the movie cast member as a node (keep track of all new nodes added to the graph)
     #   |   |   using graph.add_edge(), add an edge between the Laurence Fishburne (actress) node
     #   |   |   and each new node (co-actor/co-actress)
@@ -392,21 +405,30 @@ if __name__ == "__main__":
     #   |    nodes = The nodes added in the previous iteration:
     #   ENDIF
 
-    for loop in range(2):
+    for loop in range(3):
         if loop == 0:
             print(f"*** START LOOP {loop} ********************************************************************************************************************{loop}")
+            # Loop 0 is formerly base loop
+            nodes = deepcopy(graph.nodes) # This must be BEFORE resetting graph)now below
+            graph_base = Graph()
+            graph_now = deepcopy(graph_base)
+            print("instantiating graph_now, it has", graph_now.print_nodes())
 
+        elif loop == 1:
+            print(f"*** START LOOP {loop} ********************************************************************************************************************{loop}")
+            nodes = deepcopy(graph_now.nodes) # This must be BEFORE resetting graph)now below
             graph_loop1 = Graph()
             graph_now = deepcopy(graph_loop1)
             print("instantiating graph_now, it has", graph_now.print_nodes())
-            nodes = graph_base.nodes
-        else:
+
+        elif loop == 2:
             print(f"*** START LOOP {loop} ********************************************************************************************************************{loop}")
             nodes = deepcopy(graph_now.nodes) # This must be BEFORE resetting graph)now below
             graph_loop2 = Graph()
             graph_now = deepcopy(graph_loop2)
             print("instantiating graph_now, it has", graph_now.print_nodes())
 
+        else:
             pass
 
         for node in nodes:
@@ -416,7 +438,7 @@ if __name__ == "__main__":
             #   FOR each movie credit:
             for movie in node_credits:
             #   get the movie cast members having an 'order' value between 0-2 (these are the co-actors)
-                cast = tmdb_api_utils.get_movie_cast(movie['id'], 1, str(node[0]))  # set to 3
+                cast = tmdb_api_utils.get_movie_cast(movie['id'], 1, [node[0]])  # set to 3
 
             #   |   FOR each movie cast member:
                 for member in cast:
@@ -428,6 +450,12 @@ if __name__ == "__main__":
             #   |   END FOR
             #   END FOR
             # END BUILD BASE GRAPH
+        
+        # Now add this current loop to the summary graph:
+        for node in graph_now.nodes:
+            graph_summary.add_node(node[0], node[1])
+        for edge in graph_now.edges:
+            graph_summary.add_edge(edge[0], edge[1])
         
         print(f"-{len(graph_now.nodes)}-nodes loop {loop}---")
         graph_now.print_nodes()
@@ -442,6 +470,15 @@ if __name__ == "__main__":
     print(f"-{len(graph.nodes)}--original nodes---")
     graph.print_nodes()
         
+    print(f"-{len(graph_summary.nodes)}--SUMMARY nodes---")
+    graph_summary.print_nodes()
+    print(f"-{len(graph_summary.edges)}--SUMMARY edges---")
+    graph_summary.print_edges()
+
+
+    # graph_summary.write_edges_file()
+    # graph_summary.write_nodes_file()
+
     #   FOR each node in nodes:
     #   |  get the movie credits for the actor that have a vote average >= 8.0
     #   |
