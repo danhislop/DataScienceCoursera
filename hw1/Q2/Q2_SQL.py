@@ -109,13 +109,13 @@ class HW2_sql():
     # Part a.iii Vertical Database Partitioning [5 points]
     def part_aiii(self,connection):
         ############### EDIT CREATE TABLE SQL STATEMENT ###################################
-        part_aiii_sql = ""
+        part_aiii_sql = "CREATE TABLE cast_bio(cast_id integer, cast_name text, birthday text, popularity real);"
         ######################################################################
         
         self.execute_query(connection, part_aiii_sql)
         
         ############### CREATE IMPORT CODE BELOW ############################
-        part_aiii_insert_sql = ""
+        part_aiii_insert_sql = "INSERT INTO cast_bio (cast_id, cast_name, birthday, popularity) SELECT er.cast_id, er.cast_name, er.birthday, er.popularity FROM movie_cast er GROUP BY er.cast_id;"
         ######################################################################
         
         self.execute_query(connection, part_aiii_insert_sql)
@@ -128,26 +128,28 @@ class HW2_sql():
     # Part b Create Indexes [1 points]
     def part_b_1(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_b_1_sql = ""
+        part_b_1_sql = "CREATE INDEX movie_index ON movies(id);"
         ######################################################################
         return self.execute_query(connection, part_b_1_sql)
     
     def part_b_2(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_b_2_sql = ""
+        part_b_2_sql = "CREATE INDEX cast_index ON movie_cast(cast_id);"
         ######################################################################
         return self.execute_query(connection, part_b_2_sql)
     
     def part_b_3(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_b_3_sql = ""
+        part_b_3_sql = "CREATE INDEX cast_bio_index ON cast_bio(cast_id);"
         ######################################################################
         return self.execute_query(connection, part_b_3_sql)
     
     # Part c Calculate a Proportion [3 points]
     def part_c(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_c_sql = ""
+        #part_c_sql = "SELECT count(*) FROM movies WHERE score > 50 AND title like '%war%'"
+        part_c_sql = """SELECT  printf("%.2f", 100.0 * (chosen / total)) AS pro from (SELECT (SELECT count(*) FROM movies)*1.0 AS total, (SELECT count(*) FROM movies WHERE score > 50 AND title like '%war%')*1.0 AS chosen)"""
+        #part_c_sql = "select count(*) from movies AS total, (select count(*) from movies where score > 10) AS chosen;"
         ######################################################################
         cursor = connection.execute(part_c_sql)
         return cursor.fetchall()[0][0]
@@ -155,7 +157,7 @@ class HW2_sql():
     # Part d Find the Most Prolific Actors [4 points]
     def part_d(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_d_sql = ""
+        part_d_sql = "select cast_name, count(*) as appearance_count from movie_cast WHERE popularity > 10 group by cast_name order by appearance_count desc, cast_name asc limit 5;"
         ######################################################################
         cursor = connection.execute(part_d_sql)
         return cursor.fetchall()
@@ -268,22 +270,22 @@ if __name__ == "__main__":
 
     try:
         print('\033[32m' + "part c: " + '\033[m' + str(db.part_c(conn)))
-    except:
-        print("Error in part c")
+    except Exception as e:
+        print("Error in part c", e)
 
     try:
         print('\033[32m' + "part d: " + '\033[m')
         for line in db.part_d(conn):
             print(line[0],line[1])
-    except:
-        print("Error in part d")
+    except Exception as e:
+        print("Error in part d", e)
 
     try:
         print('\033[32m' + "part e: " + '\033[m')
         for line in db.part_e(conn):
             print(line[0],line[1],line[2])
-    except:
-        print("Error in part e")
+    except Exception as e:
+        print("Error in part e", e)
 
     try:
         print('\033[32m' + "part f: " + '\033[m')
