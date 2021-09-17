@@ -21,7 +21,7 @@
 
 
     // define function to parse time in years format
-	
+    var parseTime = d3.timeParse("%Y");
 
     // create scales x & y for X and Y axis and set their ranges
 
@@ -33,15 +33,17 @@
 
 
     // Get the data
-	var pathToCsv = "";		// path to csv
-	
-    d3.dsv(",", pathToCsv, function (d) {
+	var pathToCsv = "q3.csv";		// path to csv
+  
+      d3.dsv(",", pathToCsv, function (d) {
       return {
-        // format data attributes if required
+        year: parseTime(d.year),
+        /* year: new Date(+d.year, 0, 1), */
+        running_total: +d.running_total
       }
     }).then(function (data) {
       console.log(data); // you should see the data in your browser's developer tools console 
-      
+
       /* Create bar plot using data from csv */
 
       // set the domains of X and Y scales based on data
