@@ -189,7 +189,7 @@ class HW2_sql():
     
     def part_gi(self,connection):
         ############### EDIT SQL STATEMENT ###################################
-        part_g_i_sql = """select DISTINCT(x.cast_member), c.cast_name, x.collaboration_score FROM (select cast_member_id1 AS cast_member, printf("%.2f",average_movie_score) AS collaboration_score from good_collaboration  GROUP BY cast_member UNION select cast_member_id2 AS cast_member, printf("%.2f",average_movie_score)AS collaboration_score  from good_collaboration  GROUP BY cast_member) x LEFT JOIN movie_cast c on c.cast_id = x.cast_member ORDER BY collaboration_score DESC LIMIT 5;"""
+        part_g_i_sql = """select DISTINCT(x.cast_member)AS cast_id, c.cast_name, x.collaboration_score FROM (select cast_member_id1 AS cast_member, printf("%.2f",avg(average_movie_score)) AS collaboration_score from good_collaboration  GROUP BY cast_member UNION select cast_member_id2 AS cast_member, printf("%.2f",avg(average_movie_score)) AS collaboration_score  from good_collaboration  GROUP BY cast_member) x LEFT JOIN movie_cast c on c.cast_id = x.cast_member ORDER BY collaboration_score DESC, cast_name ASC  LIMIT 5;"""
         ######################################################################
         cursor = connection.execute(part_g_i_sql)
         return cursor.fetchall()
