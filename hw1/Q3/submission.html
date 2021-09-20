@@ -4,9 +4,24 @@
 <!-- run: http-server & -->
 
 <head>
-  <style>
-    <!-- define CSS rules -->
-  </style>
+
+</div>
+    <title>Running Total of TMDb Movies by Year</title>
+    <style type="text/css">
+
+        div.bar {
+            display: inline-block;
+            margin-right: 5px;
+            width: 20px;
+            height: 75px;	/* Gets overridden by D3-assigned height below */
+            background-color: teal;
+        }
+
+        div.text {
+            id: "credit"
+        }
+    
+    </style>
 </head>
 
 <body>
@@ -16,62 +31,43 @@
   <script src="lib/d3-fetch/d3-fetch.min.js"></script>
 
 
-  <script>
-    // define the dimensions and margins for the graph
+    <script type="text/javascript">
+        //Width and height
+        var w = 500;
+        var h = 100;
+        var barPadding = 1; 
+        var svg = d3.select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
 
-
-    // define function to parse time in years format
-    var parseTime = d3.timeParse("%Y");
-
-    // create scales x & y for X and Y axis and set their ranges
-
-
-
-    // append svg element to the body of the page
-    // set dimensions and position of the svg element
-    var svg = d3.select("body").append("svg") 
-
-
-    // Get the data
-	var pathToCsv = "q3.csv";		// path to csv
-  
-      d3.dsv(",", pathToCsv, function (d) {
-      return {
-        year: parseTime(d.year),
-        /* year: new Date(+d.year, 0, 1), */
-        running_total: +d.running_total
-      }
-    }).then(function (data) {
-      console.log(data); // you should see the data in your browser's developer tools console 
-
-      /* Create bar plot using data from csv */
-
-      // set the domains of X and Y scales based on data
-      x.domain();
-      y.domain();
-
-      // Add bars to svg - create new elements based on your data
-      svg.selectAll()
-
-
-      // Add the X Axis
-      svg.append()
-
-      // Add the text label for X Axis
-      svg.append()
-
-      // Add the Y Axis
-      svg.append()
-
-      // Add the text label for Y axis
-      svg.append()
-
-
-    }).catch(function (error) {
-      console.log(error);
+        // define function to parse time in years format
+        var parseTime = d3.timeParse("%Y");
+        var pathToCsv = "q3.csv";		// path to csv
+        var dataset = d3.dsv(",", pathToCsv, function (d) {
+        return {
+            year: parseTime(d.year),
+            /* year: new Date(+d.year, 0, 1), */
+            running_total: +d.running_total
+        }
+        }).then(function (dataset) {
+            return svg.selectAll("rect")
+        .data(dataset)
+        .enter()
+        .append("rect")
+        .attr("x", function(d,i) {
+            return i * (w / dataset.length);
+        })
+        .attr("y", function(d,i) {
+            return h - (i * 4);
+        })
+        .attr("width", w / dataset.length - barPadding)
+        .attr("height", function(d,i) {
+                return i
+        })
+        .attr("fill", "teal")
     });
+    var text = "dhislop3";
 
-
-  </script>
-
+    </script>
 </body>
