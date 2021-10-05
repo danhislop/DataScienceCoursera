@@ -105,14 +105,37 @@
     // data.columns.slice(1).map(element => element.split("="))
     //         const slices = data.columns.slice(1).map(function(element, index, array) {
 
+        // dataset.then(function(data) {
+        // const slices = data.columns.slice(1)
+        //     .filter(temp => data.columns.slice(1).includes('count'))
+        //     .map(element => element.split("=")[0]) 
+        //     ;
+
     const dataset = d3.csv("boardgame_ratings.csv");
     dataset.then(function(data) {
-        const slices = data.columns.slice(1)
-            .filter(temp => data.columns.slice(1).includes('count'))
-            .map(element => element.split("=")[0]) 
-            ;
-
+        const counts = data.columns.slice(1);
+        const con = data.columns.slice(1)
+            .filter((element, index, array) => {
+                return index % 2 === 0;
+            });
+        const slices = data.columns.slice(1).map(function(id) {
+            return {
+                id: id,
+                values: data.map(function(d){
+                    return {
+                        date: timeConv(d.date),
+                        measurement: +d[id]
+                    };
+                })
+            };
+        });
+        
     
+        
+        
+
+        console.log("Counts", counts);
+        console.log("Con", con);
     console.log("Column headers", data.columns);
     console.log("Column headers without date", data.columns.slice(1));
     // returns the sliced dataset
@@ -121,90 +144,13 @@
     console.log("First slice",slices[0]);
     // returns the array in the first slice
     console.log("B array",slices[1].values);   
-    // returns the array in the third slice
-    console.log("C array",slices[2].values);  
-    // returns the date of the first row in the first slice
-    console.log("Date element",slices[0].values[0].date);  
-    // returns the array's length
-    console.log("Array length",(slices[0].values).length);
+    // // returns the array in the third slice
+    // console.log("C array",slices[2].values);  
+    // // returns the date of the first row in the first slice
+    // console.log("Date element",slices[0].values[0].date);  
+    // // returns the array's length
+    // console.log("Array length",(slices[0].values).length);
     
-    
-    //----------------------------SCALES-----------------------------//
-    const xScale = d3.scaleTime().range([0,width]);
-    const yScale = d3.scaleLinear().rangeRound([height, 0]);
-    xScale.domain(d3.extent(data, function(d){
-        return timeConv(d.date)}));
-    yScale.domain([(0), d3.max(slices, function(c) {
-        return d3.max(c.values, function(d) {
-            return d.measurement + 4; });
-            })
-        ]);
-    
-    //-----------------------------AXES------------------------------//
-    const yaxis = d3.axisLeft()
-        .ticks((slices[0].values).length)
-        // Need to set for every 10000
-        .scale(yScale);
-    
-    const xaxis = d3.axisBottom()
-        .ticks(d3.timeMonth.every(3))
-        .tickFormat(d3.timeFormat('%b %y'))
-        .scale(xScale);
-    //----------------------------LINES------------------------------//
-    const line = d3.line()
-        .x(function(d) { return xScale(d.date); })
-        .y(function(d) { return yScale(d.measurement); });
-    
-        let id = 0;
-    const ids = function () {
-        return "line-"+id++;
-    }
-    //-------------------------2. DRAWING----------------------------//
-    
-    //-----------------------------AXES------------------------------//
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xaxis)
-        .append("text")
-        .attr("dx", ".75em")
-        .attr("x", 999)
-        .style("text-anchor", "end")
-        .text("Month");
-    
-    svg.append("g")
-        .attr("class", "axis")
-        .call(yaxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("dy", ".75em")
-        .attr("y", 6)
-        .style("text-anchor", "end")
-        .text("Num of Ratings");
-    //----------------------------LINES------------------------------//
-
-    const lines = svg.selectAll("lines")
-        // Need to return only odd slices
-        .data(slices)
-        .enter()
-        .append("g");
-    
-        lines.append("path")
-        .attr("class", ids)
-        .attr("d", function(d) { return line(d.values); });
-    
-        lines.append("text")
-        .attr("class","serie_label")
-        .datum(function(d) {
-            return {
-                id: d.id,
-                // Need a regex to return up to the = character
-                value: d.values[d.values.length - 4]}; })
-        .attr("transform", function(d) {
-                return "translate(" + (xScale(d.value.date) + 10)  
-                + "," + (yScale(d.value.measurement) + 15 ) + ")";})
-        .attr("x", 5)
-        .text(function(d) { return d.id; });
     
     });
     </script>
