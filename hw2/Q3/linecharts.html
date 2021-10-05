@@ -62,9 +62,9 @@
 </head>
 
 <body>
-  <div id='signature'>dhislop3</div>
-  <div id="container" class="svg-container"></div>
 
+  <div id="container" class="svg-container"></div>
+  <div id='signature'>dhislop3</div>
 <script>
 
     //------------------------1. PREPARATION-------------------------//
@@ -86,33 +86,84 @@
         .style("padding", padding)
         .style("margin", margin)
         .classed("svg-content", true);
+    //----------------------------TITLE------------------------------//
+    svg.append("text")
+        // .attr("class", "axis")
+        // .attr("x", width/2)
+        // .attr("y", padding)
+        // .attr("text-anchor", "middle")
+        .text("Number of Ratings 2016-2020");
     
     //-----------------------------DATA------------------------------//
     const timeConv = d3.timeParse("%Y-%m-%d");
-    // const dataset = d3.csv("boardgame_ratings.csv");
-    // dataset.then(function(data) {
-    //     const slices = data.columns.slice(1).map(function(id) {
-    //         return {
-    //             id: id,
-    //             values: data.map(function(d){
-    //                 return {
-    //                     date: timeConv(d.date),
-    //                     measurement: +d[id]
-    //                 };
-    //             })
-    //         };
-    //     });
-    // data.columns.slice(1).map(element => element.split("="))
-    //         const slices = data.columns.slice(1).map(function(element, index, array) {
-
     const dataset = d3.csv("boardgame_ratings.csv");
     dataset.then(function(data) {
-        const slices = data.columns.slice(1)
-            .filter(temp => data.columns.slice(1).includes('count'))
-            .map(element => element.split("=")[0]) 
-            ;
+        const countess = data.columns.slice(1);
+        const everyother = data.columns.slice(1)
+            .filter((element, index, array) => {
+                return index % 2 === 0;
+            });
+        
+        const count_by_index = data.columns.slice(1)
 
+            .map(function(id) {
+                return {
+                    id: id,
+                    game: id.split("=")[0],
+                    values: data.map(function(d){
+                    return {
+                        date: timeConv(d.date),
+                        measurement: +d[id]
+                    };
+                })
+
+                }
+            })
+            .filter((element, index, array) => {
+                return index % 2 === 0
+            });
+        
+        const rank_by_index = data.columns.slice(1)
+
+            .map(function(id) {
+                return {
+                    id: id,
+                    game: id.split("=")[0],
+                    values: data.map(function(d){
+                    return {
+                        date: timeConv(d.date),
+                        measurement: +d[id]
+                    };
+                })
+
+                }
+            })
+            .filter((element, index, array) => {
+                return index % 2 === 1
+            });
+        
+        const slices = data.columns.slice(1)
+            .map(function(id) {
+            return {
+                id: id,
+                values: data.map(function(d){
+                    return {
+                        date: timeConv(d.date),
+                        measurement: +d[id]
+                    };
+                })
+            };
+        });
+        
     
+        
+        
+
+    console.log("Countess", countess);
+    console.log("everyother", everyother);
+    console.log("count_by_index", count_by_index);
+    console.log("rank_by_index", rank_by_index);
+  
     console.log("Column headers", data.columns);
     console.log("Column headers without date", data.columns.slice(1));
     // returns the sliced dataset
@@ -181,11 +232,11 @@
         .attr("y", 6)
         .style("text-anchor", "end")
         .text("Num of Ratings");
+
     //----------------------------LINES------------------------------//
 
     const lines = svg.selectAll("lines")
-        // Need to return only odd slices
-        .data(slices)
+        .data(count_by_index)
         .enter()
         .append("g");
     
@@ -197,15 +248,14 @@
         .attr("class","serie_label")
         .datum(function(d) {
             return {
-                id: d.id,
-                // Need a regex to return up to the = character
+                id: d.game,
                 value: d.values[d.values.length - 4]}; })
         .attr("transform", function(d) {
                 return "translate(" + (xScale(d.value.date) + 10)  
                 + "," + (yScale(d.value.measurement) + 15 ) + ")";})
         .attr("x", 5)
         .text(function(d) { return d.id; });
-    
+
     });
     </script>
 </body>

@@ -118,11 +118,13 @@
             .filter((element, index, array) => {
                 return index % 2 === 0;
             });
-        const con = data.columns.slice(1)
+        
+        const count_by_index = data.columns.slice(1)
 
             .map(function(id) {
                 return {
                     id: id,
+                    game: id.split("=")[0],
                     values: data.map(function(d){
                     return {
                         date: timeConv(d.date),
@@ -135,6 +137,26 @@
             .filter((element, index, array) => {
                 return index % 2 === 0
             });
+        
+        const count_by_name = data.columns.slice(1)
+
+            .map(function(id) {
+                return {
+                    id: id,
+                    game: id.split("=")[0],
+                    values: data.map(function(d){
+                    return {
+                        date: timeConv(d.date),
+                        measurement: +d[id]
+                    };
+                })
+
+                }
+            })
+            .filter((element, index, array) => {
+                return index % 2 === 1
+            });
+        
         const slices = data.columns.slice(1)
             .map(function(id) {
             return {
@@ -154,7 +176,8 @@
 
     console.log("Countess", countess);
     console.log("everyother", everyother);
-    console.log("con", con);
+    console.log("count_by_index", count_by_index);
+    console.log("count_by_name", count_by_name);
     console.log("Column headers", data.columns);
     console.log("Column headers without date", data.columns.slice(1));
     // returns the sliced dataset
