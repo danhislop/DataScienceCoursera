@@ -113,12 +113,30 @@
 
     const dataset = d3.csv("boardgame_ratings.csv");
     dataset.then(function(data) {
-        const counts = data.columns.slice(1);
-        const con = data.columns.slice(1)
+        const countess = data.columns.slice(1);
+        const everyother = data.columns.slice(1)
             .filter((element, index, array) => {
                 return index % 2 === 0;
             });
-        const slices = data.columns.slice(1).map(function(id) {
+        const con = data.columns.slice(1)
+
+            .map(function(id) {
+                return {
+                    id: id,
+                    values: data.map(function(d){
+                    return {
+                        date: timeConv(d.date),
+                        measurement: +d[id]
+                    };
+                })
+
+                }
+            })
+            .filter((element, index, array) => {
+                return index % 2 === 0
+            });
+        const slices = data.columns.slice(1)
+            .map(function(id) {
             return {
                 id: id,
                 values: data.map(function(d){
@@ -134,8 +152,9 @@
         
         
 
-        console.log("Counts", counts);
-        console.log("Con", con);
+    console.log("Countess", countess);
+    console.log("everyother", everyother);
+    console.log("con", con);
     console.log("Column headers", data.columns);
     console.log("Column headers without date", data.columns.slice(1));
     // returns the sliced dataset
