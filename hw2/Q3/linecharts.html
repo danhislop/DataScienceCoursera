@@ -63,7 +63,7 @@
 
 <body>
 
-  <div id="container" class="svg-container"></div>
+  <div id="svg-a" class="svg-container"></div>
   <div id='signature'>dhislop3</div>
 <script>
 
@@ -72,11 +72,11 @@
     //-----------------------------SVG-------------------------------//
     const width = 960;
     const height = 500;
-    const margin = 5;
-    const padding = 5;
+    const margin = 15;
+    const padding = 15;
     const adj = 30;
     // we are appending SVG first
-    const svg = d3.select("div#container").append("svg")
+    const svg = d3.select("div#svg-a").append("svg")
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "-"
               + adj + " -"
@@ -87,8 +87,9 @@
         .style("margin", margin)
         .classed("svg-content", true);
     //----------------------------TITLE------------------------------//
-    svg.append("text")
+    d3.select("#svg-a").append("text")
         // .attr("class", "axis")
+        .attr("id", "title-a")
         // .attr("x", width/2)
         // .attr("y", padding)
         // .attr("text-anchor", "middle")
@@ -192,11 +193,16 @@
         ]);
     
     //-----------------------------AXES------------------------------//
+    // const yaxis = d3.axisLeft()
+    //     .ticks((slices[0].values).length)
+    //     // Need to set for every 10000
+    //     .scale(yScale);
+    
     const yaxis = d3.axisLeft()
-        .ticks((slices[0].values).length)
+        .ticks(10)
         // Need to set for every 10000
         .scale(yScale);
-    
+
     const xaxis = d3.axisBottom()
         .ticks(d3.timeMonth.every(3))
         .tickFormat(d3.timeFormat('%b %y'))
@@ -207,35 +213,18 @@
         .y(function(d) { return yScale(d.measurement); });
     
         let id = 0;
-    const ids = function () {
+    var ids = function () {
         return "line-"+id++;
     }
     //-------------------------2. DRAWING----------------------------//
-    
-    //-----------------------------AXES------------------------------//
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xaxis)
-        .append("text")
-        .attr("dx", ".75em")
-        .attr("x", 999)
-        .style("text-anchor", "end")
-        .text("Month");
-    
-    svg.append("g")
-        .attr("class", "axis")
-        .call(yaxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("dy", ".75em")
-        .attr("y", 6)
-        .style("text-anchor", "end")
-        .text("Num of Ratings");
-
+    d3.select("#svg-a").append("g")
+        .attr("id", "plot-a")
+    d3.select("#plot-a").append("g")
+        .attr("id", "lines-a")
     //----------------------------LINES------------------------------//
 
-    const lines = svg.selectAll("lines")
+   const lines =  d3.select("#lines-a").selectAll("lines")
+        .attr("id", "lines-a")
         .data(count_by_index)
         .enter()
         .append("g");
@@ -255,6 +244,31 @@
                 + "," + (yScale(d.value.measurement) + 15 ) + ")";})
         .attr("x", 5)
         .text(function(d) { return d.id; });
+    //-----------------------------AXES------------------------------//
+
+    d3.select("#plot-a").append("g")
+        .attr("id", "x-axis-a")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xaxis)
+        .append("text")
+        .attr("dx", ".75em")
+        .attr("x", 999)
+        .style("text-anchor", "end")
+        .text("Month");
+    
+    d3.select("#plot-a").append("g")
+        .attr("id", "y-axis-a")
+        .attr("class", "axis")
+        .call(yaxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("dy", ".75em")
+        .attr("y", 6)
+        .style("text-anchor", "end")
+        .text("Num of Ratings");
+
+
 
     });
     </script>
