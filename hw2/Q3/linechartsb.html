@@ -63,40 +63,39 @@
 
 <body>
 
-  <div id="svg-a" class="svg-container"></div>
   <div id="svg-b" class="svg-container"></div>
   <div id='signature'>dhislop3</div>
 <script>
 
 
-    //------------------------BEGIN  A  A  AA  A  A    -------------------------//
+    //------------------------BEGIN  B  B  BB  B  B    -------------------------//
     
     //-----------------------------SVG-------------------------------//
-    const widtha = 960;
-    const heighta = 500;
-    const margina = 15;
-    const paddinga = 15;
-    const adja = 30;
+    const widthb = 960;
+    const heightb = 500;
+    const marginb = 15;
+    const paddingb = 15;
+    const adjb = 30;
 
     // we are appending SVG A first
-    var svga = d3.select("div#svg-a").append("svg")
+    var svgb = d3.select("div#svg-b").append("svg")
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "-"
-              + adja + " -"
-              + adja + " "
-              + (widtha + adja *3) + " "
-              + (heighta + adja *3))
-        .style("padding", paddinga)
-        .style("margin", margina)
+              + adjb + " -"
+              + adjb + " "
+              + (widthb + adjb *3) + " "
+              + (heightb + adjb *3))
+        .style("padding", paddingb)
+        .style("margin", marginb)
         .classed("svg-content", true);
     //----------------------------TITLE------------------------------//
-    svga.append("text")
+    svgb.append("text")
         // .attr("class", "axis")
-        .attr("id", "title-a")
-        // .attr("x", widtha/2)
-        // .attr("y", paddinga)
+        .attr("id", "title-b")
+        // .attr("x", widthb/2)
+        // .attr("y", paddingb)
         // .attr("text-anchor", "middle")
-        .text("Number of Ratings 2016-2020");
+        .text("Number of Ratings 2016-2020 with Rankings");
     
     //-----------------------------DATA------------------------------//
     const timeConv = d3.timeParse("%Y-%m-%d");
@@ -185,124 +184,6 @@
     
     
     //----------------------------SCALES-----------------------------//
-    var xScalea = d3.scaleTime().range([0,widtha]);
-    var yScalea = d3.scaleLinear().rangeRound([heighta, 0]);
-    xScalea.domain(d3.extent(data, function(d){
-        return timeConv(d.date)}));
-    yScalea.domain([(0), d3.max(slices, function(c) {
-        return d3.max(c.values, function(d) {
-            return d.measurement + 4; });
-            })
-        ]);
-    
-    //-----------------------------AXES------------------------------//
-    var yaxisa = d3.axisLeft()
-        .ticks(10)
-        // Need to set for every 10000
-        .scale(yScalea);
-    
-    var xaxisa = d3.axisBottom()
-        .ticks(d3.timeMonth.every(3))
-        .tickFormat(d3.timeFormat('%b %y'))
-        .scale(xScalea);
-    //----------------------------LINES------------------------------//
-    var linea = d3.line()
-        .x(function(d) { return xScalea(d.date); })
-        .y(function(d) { return yScalea(d.measurement); });
-    
-        let idb = 0;
-    var idsa = function () {
-        return "line-"+idb++;
-    }
-    //-------------------------2. DRAWING----------------------------//
-    var plota = svga.append("g")
-        .attr("id", "plot-a")
-    var linesa = plota.append("g")
-        .attr("id", "lines-a")
-    //----------------------------LINES------------------------------//
-
-   var myColor = d3.scaleOrdinal(d3.schemeCategory10);
-
-    var lines = linesa.selectAll("lines")
-        .attr("id", "lines-a")
-        .data(count_by_index)
-        .enter()
-        .append("g");
-    
-        lines.append("path")
-        .attr("class", idsa)
-        .attr("d", function(d) { return linea(d.values); })
-        .style("stroke", function(d, i){
-            return myColor(i) })
-        lines.append("text")
-        .attr("class","serie_label")
-        .datum(function(d) {
-            return {
-                id: d.game,
-                value: d.values[d.values.length - 4]}; })
-        .attr("transform", function(d) {
-                return "translate(" + (xScalea(d.value.date) + 10)  
-                + "," + (yScalea(d.value.measurement) + 15 ) + ")";})
-        .attr("x", 5)
-        .text(function(d) { return d.id; });
-        //-----------------------------AXES------------------------------//
-    plota.append("g")
-        .attr("id", "x-axis-a")
-        .attr("class", "axis")
-        .attr("transform", "translate(0," + heighta + ")")
-        .call(xaxisa)
-        .append("text")
-        .attr("dx", ".75em")
-        .attr("x", 999)
-        .style("text-anchor", "end")
-        .text("Month");
-    
-    plota.append("g")
-        .attr("id", "y-axis-a")
-        .attr("class", "axis")
-        .call(yaxisa)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("dy", ".75em")
-        .attr("y", 6)
-        .style("text-anchor", "end")
-        .text("Num of Ratings");
-
-
-
-
-    //------------------------BEGIN  B  B  BB  B  B    -------------------------//
-    
-    //-----------------------------SVG-------------------------------//
-    const widthb = 960;
-    const heightb = 500;
-    const marginb = 15;
-    const paddingb = 15;
-    const adjb = 30;
-
-    // we are appending SVG A first
-    var svgb = d3.select("div#svg-b").append("svg")
-        .attr("preserveAspectRatio", "xMinYMin meet")
-        .attr("viewBox", "-"
-              + adjb + " -"
-              + adjb + " "
-              + (widthb + adjb *3) + " "
-              + (heightb + adjb *3))
-        .style("padding", paddingb)
-        .style("margin", marginb)
-        .classed("svg-content", true);
-    //----------------------------TITLE------------------------------//
-    svgb.append("text")
-        // .attr("class", "axis")
-        .attr("id", "title-b")
-        // .attr("x", widthb/2)
-        // .attr("y", paddingb)
-        // .attr("text-anchor", "middle")
-        .text("Number of Ratings 2016-2020 with Rankings");
-    
-      
-    
-    //----------------------------SCALES-----------------------------//
 
     var xScaleb = d3.scaleTime().range([0,widthb]);
     var yScaleb = d3.scaleLinear().rangeRound([heightb, 0]);
@@ -386,8 +267,9 @@
         .attr("y", 6)
         .style("text-anchor", "end")
         .text("Num of Ratings");
-    ;
-        })
+
+    });
+
 
 
     </script>
