@@ -75,6 +75,7 @@
     const margin = 15;
     const padding = 15;
     const adj = 30;
+
     // we are appending SVG first
     var svga = d3.select("div#svg-a").append("svg")
         .attr("preserveAspectRatio", "xMinYMin meet")
@@ -218,6 +219,8 @@
         .attr("id", "lines-a")
     //----------------------------LINES------------------------------//
 
+   var myColor = d3.scaleOrdinal(d3.schemeCategory10);
+
     var lines = linesa.selectAll("lines")
         .attr("id", "lines-a")
         .data(count_by_index)
@@ -226,8 +229,9 @@
     
         lines.append("path")
         .attr("class", ids)
-        .attr("d", function(d) { return line(d.values); });
-    
+        .attr("d", function(d) { return line(d.values); })
+        .style("stroke", function(d, i){
+            return myColor(i) })
         lines.append("text")
         .attr("class","serie_label")
         .datum(function(d) {
