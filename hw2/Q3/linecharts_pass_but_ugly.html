@@ -76,7 +76,7 @@
     const padding = 15;
     const adj = 30;
     // we are appending SVG first
-    var svga = d3.select("div#svg-a").append("svg")
+    const svg = d3.select("div#svg-a").append("svg")
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "-"
               + adj + " -"
@@ -87,7 +87,7 @@
         .style("margin", margin)
         .classed("svg-content", true);
     //----------------------------TITLE------------------------------//
-    svga.append("text")
+    d3.select("#svg-a").append("text")
         // .attr("class", "axis")
         .attr("id", "title-a")
         // .attr("x", width/2)
@@ -182,8 +182,8 @@
     
     
     //----------------------------SCALES-----------------------------//
-    var xScale = d3.scaleTime().range([0,width]);
-    var yScale = d3.scaleLinear().rangeRound([height, 0]);
+    const xScale = d3.scaleTime().range([0,width]);
+    const yScale = d3.scaleLinear().rangeRound([height, 0]);
     xScale.domain(d3.extent(data, function(d){
         return timeConv(d.date)}));
     yScale.domain([(0), d3.max(slices, function(c) {
@@ -193,17 +193,22 @@
         ]);
     
     //-----------------------------AXES------------------------------//
-    var yaxis = d3.axisLeft()
+    // const yaxis = d3.axisLeft()
+    //     .ticks((slices[0].values).length)
+    //     // Need to set for every 10000
+    //     .scale(yScale);
+    
+    const yaxis = d3.axisLeft()
         .ticks(10)
         // Need to set for every 10000
         .scale(yScale);
-    
-    var xaxis = d3.axisBottom()
+
+    const xaxis = d3.axisBottom()
         .ticks(d3.timeMonth.every(3))
         .tickFormat(d3.timeFormat('%b %y'))
         .scale(xScale);
     //----------------------------LINES------------------------------//
-    var line = d3.line()
+    const line = d3.line()
         .x(function(d) { return xScale(d.date); })
         .y(function(d) { return yScale(d.measurement); });
     
@@ -212,13 +217,13 @@
         return "line-"+id++;
     }
     //-------------------------2. DRAWING----------------------------//
-    var plota = svga.append("g")
+    d3.select("#svg-a").append("g")
         .attr("id", "plot-a")
-    var linesa = plota.append("g")
+    d3.select("#plot-a").append("g")
         .attr("id", "lines-a")
     //----------------------------LINES------------------------------//
 
-    var lines = linesa.selectAll("lines")
+   const lines =  d3.select("#lines-a").selectAll("lines")
         .attr("id", "lines-a")
         .data(count_by_index)
         .enter()
@@ -239,8 +244,9 @@
                 + "," + (yScale(d.value.measurement) + 15 ) + ")";})
         .attr("x", 5)
         .text(function(d) { return d.id; });
-        //-----------------------------AXES------------------------------//
-    plota.append("g")
+    //-----------------------------AXES------------------------------//
+
+    d3.select("#plot-a").append("g")
         .attr("id", "x-axis-a")
         .attr("class", "axis")
         .attr("transform", "translate(0," + height + ")")
@@ -251,7 +257,7 @@
         .style("text-anchor", "end")
         .text("Month");
     
-    plota.append("g")
+    d3.select("#plot-a").append("g")
         .attr("id", "y-axis-a")
         .attr("class", "axis")
         .call(yaxis)
