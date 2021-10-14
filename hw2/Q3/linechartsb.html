@@ -102,68 +102,75 @@
     const timeConv = d3.timeParse("%Y-%m-%d");
     const dataset = d3.csv("boardgame_ratings.csv");
     dataset.then(function(data) {
-        const countess = data.columns.slice(1);
-        const everyother = data.columns.slice(1)
-            .filter((element, index, array) => {
-                return index % 2 === 0;
-            });
-        
-        const count_by_index = data.columns.slice(1)
+    const countess = data.columns.slice(1);
+    const everyother = data.columns.slice(1)
+        .filter((element, index, array) => {
+            return index % 2 === 1;
+        });
+    const mygamesx = ['Catan', 'Codenames', 'Terraforming Mars', 'Gloomhaven']
+    const mygames = ['Catan=rank', 'Codenames=rank', 'Terraforming Mars=rank', 'Gloomhaven=rank']
+    const count_by_index = data.columns.slice(1)
 
-            .map(function(id) {
-                return {
-                    id: id,
-                    game: id.split("=")[0],
-                    values: data.map(function(d){
-                    return {
-                        date: timeConv(d.date),
-                        measurement: +d[id]
-                    };
-                })
-
-                }
-            })
-            .filter((element, index, array) => {
-                return index % 2 === 0
-            });
-        
-        const rank_by_index = data.columns.slice(1)
-
-            .map(function(id) {
-                return {
-                    id: id,
-                    game: id.split("=")[0],
-                    values: data.map(function(d){
-                    return {
-                        date: timeConv(d.date),
-                        measurement: +d[id]
-                    };
-                })
-
-                }
-            })
-            .filter((element, index, array) => {
-                return index % 2 === 1
-            });
-        
-        const slices = data.columns.slice(1)
-            .map(function(id) {
+        .map(function(id) {
             return {
                 id: id,
+                game: id.split("=")[0],
                 values: data.map(function(d){
-                    return {
-                        date: timeConv(d.date),
-                        measurement: +d[id]
-                    };
-                })
-            };
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+
+            }
+        })
+        .filter((element, index, array) => {
+            return index % 2 === 0
         });
-        
+    
+    const rank_by_index = data.columns.slice(1)
+
+        .map(function(id) {
+            return {
+                id: id,
+                game: id.split("=")[0],
+                values: data.map(function(d){
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+
+            }
+        })
+        .filter((element, index, array) => {
+            return index % 2 === 1
+        })
+        .filter(x => mygames.includes(x.id))
+            // to do: reduce to every third point
+        // .filter((element, index, array) => {
+        //     return element.index % 3 == 0
+        // })
+        ;
+    
+    const slices = data.columns.slice(1)
+        .map(function(id) {
+        return {
+            id: id,
+            values: data.map(function(d){
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+        };
+    });
+    
     
         
         
 
-    console.log("Countess", countess);
+    console.log("mygames", mygames);
     console.log("everyother", everyother);
     console.log("count_by_index", count_by_index);
     console.log("rank_by_index", rank_by_index);
@@ -215,6 +222,7 @@
     var idsb = function () {
         return "line-"+id++;
     }
+    
     //-------------------------2. DRAWING----------------------------//
     var plotb = svgb.append("g")
         .attr("id", "plot-b")
@@ -223,6 +231,8 @@
     //----------------------------LINES------------------------------//
 
    var myColor = d3.scaleOrdinal(d3.schemeCategory10);
+   var selectCircle = linesb.selectAll(".circle")
+    .data(count_by_index)
 
     var lines = linesb.selectAll("lines")
         .attr("id", "lines-b")
@@ -232,7 +242,8 @@
     
         lines.append("path")
         .attr("class", idsb)
-        .attr("d", function(d) { return lineb(d.values); })
+        .attr("d", function(d) { 
+            return lineb(d.values); })
         .style("stroke", function(d, i){
             return myColor(i) })
         lines.append("text")
@@ -246,6 +257,22 @@
                 + "," + (yScaleb(d.value.measurement) + 15 ) + ")";})
         .attr("x", 5)
         .text(function(d) { return d.id; });
+        
+        //-----------------------------CIRCLES------------------------------//
+    plotb.append("g")
+        .attr("id", "symbols-b")
+        .selectAll("dot")
+        .data(rank_by_index)
+        .enter()
+        .append("circle")
+            .attr("cx", function(d) {  
+                return lineb(d.values.xScaleb) } )
+            .attr("cy", function(d) { 
+                console.log("THERE")
+                return lineb(d.values.y) } )
+            .attr("r", 5)
+            .attr("fill", "#69b3a2")
+
         //-----------------------------AXES------------------------------//
     plotb.append("g")
         .attr("id", "x-axis-b")

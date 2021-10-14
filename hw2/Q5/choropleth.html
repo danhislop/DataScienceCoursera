@@ -4,6 +4,7 @@
     <!-- add title -->
     <title>dhislop3 Choropleth</title>
     <!-- Adapted from https://datawanderings.com/2018/10/28/making-a-map-in-d3-js-v-5/ -->
+    <!-- Adapted from Oreilly textbook, chapter 14 -->
     <!-- import required libraries here -->
     <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
     <style>
@@ -64,27 +65,7 @@
 
     //-----------------------------Extract Unique Games------------------------------//
 
-        const dataset = d3.csv("ratings-by-country.csv");
-        dataset.then(function(data) {
-            const countess = data.columns.slice();
-
-            const gamelist = [...new Set(data.map(item => item.Game))]
-            .sort()
-;;
-        console.log("Countess", countess);
-        console.log("gamelist", gamelist);
-
-    //-----------------------------Populate dropdown------------------------------//
-        // add the options to the button
-        d3.select("#gameDropdown")
-            .selectAll('myOptions')
-     	        .data(gamelist)
-            .enter()
-    	    .append('option')
-            .text(function (d) { return d; }) // text showed in the menu
-            .attr("value", function (d) { return d; }) // corresponding value returned by the button
-
-        });
+;
 
         // enter code to define tooltip
         
@@ -95,20 +76,34 @@
 
         var projection = d3.geoMercator().translate([w/2, h/2]).scale(2200).center([0,40]);
 
-        var path = d3.geoPath().projection(projection);
-
+        // var path = d3.geoPath().projection(projection); dan sourced elsewhere
+        //Define path generator, using the Albers USA projection
+        var path = d3.geoPath()
+                    .projection(d3.geoAlbersUsa());
+        
+        var world = d3.json("world_countries.json", function(json) {
+            //Bind data and create one path per GeoJSON feature
+                svg.selectAll("path")
+                .data(json.features)
+                .enter()
+                .append("path")
+                .attr("d", path);
+            })
 
         
 
         // define any other global variables 
 
-        var worldmap = d3.json("world_countries.json");
+        // var worldmap = d3.json("world_countries.json");
         var cities = d3.csv("ratings-by-country.csv");
 
 
         Promise.all(
             // enter code to read files
-            [worldmap, cities]
+            //Load in GeoJSON data
+            //var cities = d3.csv("ratings-by-country.csv");
+
+            [world]
             
         ).then(
             // enter code to call ready() with required arguments
@@ -122,57 +117,93 @@
                     .attr("class","continent")
                     .attr("d", path),
 
-            // draw points
-                svg.selectAll("circle")
-                    .data(values[1])
-                    .enter()
-                    .append("circle")
-                    .attr("class","circles")
-                    .attr("cx", function(d) {return projection([d.Longitude, d.Lattitude])[0];})
-                    .attr("cy", function(d) {return projection([d.Longitude, d.Lattitude])[1];})
-                    .attr("r", "1px"),
-            // add labels
-                svg.selectAll("text")
-                    .data(values[1])
-                    .enter()
-                    .append("text")
-                    .text(function(d) {
-                                return d.City;
-                        })
-                    .attr("x", function(d) {return projection([d.Longitude, d.Lattitude])[0] + 5;})
-                    .attr("y", function(d) {return projection([d.Longitude, d.Lattitude])[1] + 15;})
-                    .attr("class","labels");
+            // // draw points
+            //     svg.selectAll("circle")
+            //         .data(values[1])
+            //         .enter()
+            //         .append("circle")
+            //         .attr("class","circles")
+            //         .attr("cx", function(d) {return projection([d.Longitude, d.Lattitude])[0];})
+            //         .attr("cy", function(d) {return projection([d.Longitude, d.Lattitude])[1];})
+            //         .attr("r", "1px"),
+            // // add labels
+            //     svg.selectAll("text")
+            //         .data(values[1])
+            //         .enter()
+            //         .append("text")
+            //         .text(function(d) {
+            //                     return d.City;
+            //             })
+            //         .attr("x", function(d) {return projection([d.Longitude, d.Lattitude])[0] + 5;})
+            //         .attr("y", function(d) {return projection([d.Longitude, d.Lattitude])[1] + 15;})
+            //         .attr("class","labels");
                     
-                    console.log("value0", values[0].features)
-                });
+            //         console.log("value0", values[0].features)
+                // });
             
-        
+
+            gl = ready();
+            console.log("ready has been called and now complete");
+
+
         // this function should be called once the data from files have been read
         // world: topojson from world_countries.json
         // gameData: data from ratings-by-country.csv
-        
-
-
-
         function ready(error, world, gameData) {
             // enter code to extract all unique games from gameData
 
+            //-----------------------------Extract Unique Games------------------------------//
+            const dataset = d3.csv("ratings-by-country.csv");
+                dataset.then(function(data) {
+
+            const gamelist = [...new Set(data.map(item => item.Game))].sort();
+
+            console.log("gamelist", gamelist);
+
+            //-----------------------------Populate dropdown------------------------------//
             // enter code to append the game options to the dropdown
-            
+            d3.select("#gameDropdown") // This is the dom element
+                .selectAll('myOptions') // actions on the dom element 
+                    .data(gamelist)
+                .enter()
+                .append('option')
+                .text(function (d) { return d; }) // text showed in the menu
+                .attr("value", function (d) { return d; }) // corresponding value returned by the button
+            });
+
             // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
+
+            d3.select("#gameDropdown").on("change", function(event,d) {
+                // recover the option that has been chosen
+            const selectedOption = d3.select(this).property("value")
+                // run the createMapAndLegend() function with this selected option
+            createMapAndLegend(world, gameData, selectedOption)
+                // create Choropleth with default option. Call createMapAndLegend() with required arguments. 
             
-            // create Choropleth with default option. Call createMapAndLegend() with required arguments. 
-        }
+        })
+        createMapAndLegend(world, gameData, "6 nimnt!");
+    };
 
         // this function should create a Choropleth and legend using the world and gameData arguments for a selectedGame
         // also use this function to update Choropleth and legend when a different game is selected from the dropdown
         function createMapAndLegend(world, gameData, selectedGame){ 
-        
-
+            console.log("called map and legend", world, "2", gameData, "3", selectedGame);
+             
             // Have you tried clearing the svg element before building the map and legend in each iteration? In my case it was 'd3.selectAll('body').selectAll('g').remove()'.
+            svg.selectAll("path")
+                .data(world.features)
+                .enter()
+                .append("path")
+                .attr("d", path)
+                .style("fill", function(d) {
+                    if (d.properties.game_list.includes(selectedGame)) {
+                        return "blue";
+                    } else { 
+                        return "grey";
+                    }
+                })
             
-            
-        }
+        };
     </script>
 
 </body>
