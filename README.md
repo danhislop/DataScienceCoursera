@@ -7,5 +7,5 @@ If the Jupyter Notebooks don't render directly from github (sometimes they don't
 just paste the URL from github directly into: https://nbviewer.jupyter.org/
 
 for example: 
-https://nbviewer.jupyter.org/github/danhislop/LearningTools/blob/master/TestUpload.ipynb
+https://nbviewer.org/github/danhislop/DataScienceCourses/blob/master/ML-Classification_with_python.ipynb
 
